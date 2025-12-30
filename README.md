@@ -4,6 +4,7 @@ ToDo for me:
 - Salary Page für 2026
 - UDFA Players
 - Player Page - Pictures und weiteres
+- Vielleicht irgendwie noch eine Überschrift für den Veteran Taxi Block
 
 Erledigt:
 

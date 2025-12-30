@@ -4,3 +4,7 @@ ToDo for me:
 - Salary Page für 2026
 - UDFA Players
 - Player Page - Pictures und weiteres
+
+Erledigt:
+
+- Nicht funktionierende Toogle View gefixt

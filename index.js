@@ -208,7 +208,8 @@ async function renderVeteranTaxiBlock() {
 
 // ----------------------------
 // Laden
-document.addEventListener("DOMContentLoaded", () => {
-  renderTeamCapBlock();
-  renderVeteranTaxiBlock();
+document.addEventListener("DOMContentLoaded", async () => {
+  await renderTeamCapBlock();  // Warten, bis Team-Cap-Block komplett aufgebaut ist
+  await renderVeteranTaxiBlock(); // dann Veteran-Taxi-Block
 });
+

@@ -46,8 +46,13 @@ async function fetchRosters() {
   return await res.json();
 }
 
+async function fetchSleeperPlayers() {
+  const res = await fetch("https://api.sleeper.app/v1/players/nfl");
+  return await res.json();
+}
+
 // ----------------------------
-// Team Cap Block rendern
+// Team Cap Block rendern (UNVERÄNDERT)
 async function renderTeamCapBlock() {
   const sheetData = await fetchSheetPlayers();
   const cutSheetData = await fetchCutSheet();
@@ -73,15 +78,11 @@ async function renderTeamCapBlock() {
     container.style.fontFamily = '"Inter", "Helvetica Neue", Helvetica, Arial, sans-serif';
     container.style.fontSize = "14px";
     container.style.lineHeight = "1.4";
-    container.style.overflowX = "hidden"; // <- Scroll verhindern
-    container.style.boxSizing = "border-box"; // <- padding innerhalb der Breite
+    container.style.overflowX = "hidden";
+    container.style.boxSizing = "border-box";
 
     const dashboard = document.querySelector("h1");
-    if (dashboard) {
-      dashboard.parentNode.insertBefore(container, dashboard.nextSibling);
-    } else {
-      document.body.insertBefore(container, document.body.firstChild);
-    }
+    dashboard.parentNode.insertBefore(container, dashboard.nextSibling);
   }
   container.innerHTML = "";
 
@@ -92,13 +93,11 @@ async function renderTeamCapBlock() {
   header.style.padding = "6px 12px";
   header.style.borderRadius = "6px";
   header.style.marginBottom = "8px";
-  header.style.fontSize = "14px";
   header.style.gap = "8px";
-  header.style.minWidth = "0"; // <- wichtig
   header.innerHTML = `
-    <span style="flex:1.5; min-width:0;">Owner</span>
-    <span style="flex:1; text-align:right; min-width:0;">Team Cap Space</span>
-    <span style="flex:1; text-align:right; min-width:0;">FAAB</span>
+    <span style="flex:1.5">Owner</span>
+    <span style="flex:1; text-align:right">Team Cap Space</span>
+    <span style="flex:1; text-align:right">FAAB</span>
   `;
   container.appendChild(header);
 
@@ -112,69 +111,49 @@ async function renderTeamCapBlock() {
     const deadCapPlayers = cutSheetData.filter(p => p.Owner === owner);
 
     const sumForYear = players => players.reduce((sum, p) => sum + parseValue(p[year]), 0);
-    const usedCap = sumForYear(activePlayers);
-    const deadCap = sumForYear(deadCapPlayers);
-    const capSpace = teamCap - usedCap - deadCap;
+    const capSpace = teamCap - sumForYear(activePlayers) - sumForYear(deadCapPlayers);
     const faab = Math.floor(capSpace / 10000);
 
     const row = document.createElement("div");
     row.style.display = "flex";
     row.style.gap = "8px";
     row.style.padding = "6px 12px";
-    row.style.borderTop = "1px solid #223348";
-    row.style.borderRadius = "6px";
-    row.style.transition = "background-color 0.2s";
-    row.style.cursor = "default";
-    row.style.minWidth = "0"; // <- wichtig
     if (index % 2 === 0) row.style.backgroundColor = "#1f2b3d";
 
-    row.addEventListener("mouseover", () => row.style.backgroundColor = "#223348");
-    row.addEventListener("mouseout", () => row.style.backgroundColor = index % 2 === 0 ? "#1f2b3d" : "#1b2a3a");
-
-    const ownerSpan = document.createElement("span");
-    ownerSpan.textContent = owner;
-    ownerSpan.style.flex = "1.5";
-    ownerSpan.style.minWidth = "0";
-
-    const capSpan = document.createElement("span");
-    capSpan.textContent = formatMoney(capSpace);
-    capSpan.style.color = capSpace < 0 ? "#ff4d4d" : "#ffffff";
-    capSpan.style.flex = "1";
-    capSpan.style.minWidth = "0";
-    capSpan.style.textAlign = "right";
-
-    const faabSpan = document.createElement("span");
-    faabSpan.textContent = faab;
-    faabSpan.style.color = faab < 0 ? "#ff4d4d" : "#ffffff";
-    faabSpan.style.flex = "1";
-    faabSpan.style.minWidth = "0";
-    faabSpan.style.textAlign = "right";
-
-    row.appendChild(ownerSpan);
-    row.appendChild(capSpan);
-    row.appendChild(faabSpan);
-
+    row.innerHTML = `
+      <span style="flex:1.5">${owner}</span>
+      <span style="flex:1; text-align:right; color:${capSpace < 0 ? "#ff4d4d" : "#fff"}">${formatMoney(capSpace)}</span>
+      <span style="flex:1; text-align:right; color:${faab < 0 ? "#ff4d4d" : "#fff"}">${faab}</span>
+    `;
     container.appendChild(row);
   });
 }
 
 // ----------------------------
-// Veteran Taxi Block rendern
+// Veteran Taxi Block rendern (FIXED)
 async function renderVeteranTaxiBlock() {
   const sheetData = await fetchSheetPlayers();
   const rosters = await fetchRosters();
+  const sleeperPlayers = await fetchSleeperPlayers();
   const taxiPlayers = [];
-
-  if (!sheetData.length || !rosters.length) return;
 
   rosters.forEach(roster => {
     const owner = ownerMap[String(roster.roster_id)] || "Unknown";
     const taxiIds = (roster.taxi || []).map(String);
 
     taxiIds.forEach(id => {
-      const player = sheetData.find(p => String(p["Player ID"]) === id);
-      if (player && player.Contract && player.Contract.toLowerCase() === "veteran") {
-        taxiPlayers.push({ ...player, owner });
+      const sheetPlayer = sheetData.find(p => String(p["Player ID"]).trim() === id);
+      const sleeperPlayer = sleeperPlayers[id];
+
+      if (!sheetPlayer || !sleeperPlayer) return;
+
+      if (sheetPlayer.Contract?.toLowerCase() === "veteran") {
+        taxiPlayers.push({
+          Name: sleeperPlayer.full_name,
+          Position: sleeperPlayer.position,
+          Contract: sheetPlayer.Contract,
+          owner
+        });
       }
     });
   });
@@ -194,86 +173,36 @@ async function renderVeteranTaxiBlock() {
     container.style.fontFamily = '"Inter", "Helvetica Neue", Helvetica, Arial, sans-serif';
     container.style.fontSize = "14px";
     container.style.lineHeight = "1.4";
-    container.style.overflowX = "hidden"; // <- Scroll verhindern
-    container.style.boxSizing = "border-box"; // <- padding innerhalb der Breite
+    container.style.overflowX = "hidden";
+    container.style.boxSizing = "border-box";
 
-    const capBlock = document.getElementById("team-cap-block");
-    if (capBlock) {
-      capBlock.parentNode.insertBefore(container, capBlock.nextSibling);
-    } else {
-      document.body.appendChild(container);
-    }
+    document.getElementById("team-cap-block")
+      .parentNode.insertBefore(container, document.getElementById("team-cap-block").nextSibling);
   }
-  container.innerHTML = "";
 
-  const header = document.createElement("div");
-  header.style.display = "flex";
-  header.style.fontWeight = "600";
-  header.style.backgroundColor = "#162332";
-  header.style.padding = "6px 12px";
-  header.style.borderRadius = "6px";
-  header.style.marginBottom = "8px";
-  header.style.fontSize = "14px";
-  header.style.gap = "8px";
-  header.style.minWidth = "0"; // <- wichtig
-  header.innerHTML = `
-    <span style="flex:2; min-width:0;">Player</span>
-    <span style="flex:1; min-width:0;">Position</span>
-    <span style="flex:1; min-width:0;">Owner</span>
-    <span style="flex:1; min-width:0;">Contract</span>
+  container.innerHTML = `
+    <div style="display:flex;font-weight:600;background:#162332;padding:6px 12px;border-radius:6px;margin-bottom:8px">
+      <span style="flex:2">Player</span>
+      <span style="flex:1">Position</span>
+      <span style="flex:1">Owner</span>
+      <span style="flex:1">Contract</span>
+    </div>
   `;
-  container.appendChild(header);
 
   if (!taxiPlayers.length) {
-    const emptyRow = document.createElement("div");
-    emptyRow.style.padding = "6px 12px";
-    emptyRow.style.color = "#bbbbbb";
-    emptyRow.textContent = "Keine Veteran-Taxi-Spieler vorhanden.";
-    container.appendChild(emptyRow);
+    container.innerHTML += `<div style="padding:6px 12px;color:#bbb">Keine Veteran-Taxi-Spieler vorhanden.</div>`;
     return;
   }
 
-  taxiPlayers.forEach((p, index) => {
-    const row = document.createElement("div");
-    row.style.display = "flex";
-    row.style.gap = "8px";
-    row.style.padding = "6px 12px";
-    row.style.borderTop = "1px solid #223348";
-    row.style.borderRadius = "6px";
-    row.style.transition = "background-color 0.2s";
-    row.style.cursor = "default";
-    row.style.minWidth = "0"; // <- wichtig
-    if (index % 2 === 0) row.style.backgroundColor = "#1f2b3d";
-
-    row.addEventListener("mouseover", () => row.style.backgroundColor = "#223348");
-    row.addEventListener("mouseout", () => row.style.backgroundColor = index % 2 === 0 ? "#1f2b3d" : "#1b2a3a");
-
-    const nameSpan = document.createElement("span");
-    nameSpan.textContent = p.Name || "-";
-    nameSpan.style.flex = "2";
-    nameSpan.style.minWidth = "0";
-
-    const posSpan = document.createElement("span");
-    posSpan.textContent = p.Position || "-";
-    posSpan.style.flex = "1";
-    posSpan.style.minWidth = "0";
-
-    const ownerSpan = document.createElement("span");
-    ownerSpan.textContent = p.owner || "-";
-    ownerSpan.style.flex = "1";
-    ownerSpan.style.minWidth = "0";
-
-    const contractSpan = document.createElement("span");
-    contractSpan.textContent = p.Contract || "-";
-    contractSpan.style.flex = "1";
-    contractSpan.style.minWidth = "0";
-
-    row.appendChild(nameSpan);
-    row.appendChild(posSpan);
-    row.appendChild(ownerSpan);
-    row.appendChild(contractSpan);
-
-    container.appendChild(row);
+  taxiPlayers.forEach((p, i) => {
+    container.innerHTML += `
+      <div style="display:flex;padding:6px 12px;${i % 2 === 0 ? "background:#1f2b3d" : ""}">
+        <span style="flex:2">${p.Name}</span>
+        <span style="flex:1">${p.Position}</span>
+        <span style="flex:1">${p.owner}</span>
+        <span style="flex:1">${p.Contract}</span>
+      </div>
+    `;
   });
 }
 

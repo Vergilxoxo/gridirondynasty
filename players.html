@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Spielerliste</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="index.html" class="nav-logo">Dashboard</a>
+      <a href="players.html" class="nav-link">Spielerliste</a>
+      <a href="ralf.html" class="nav-link">Roster</a>
+      <!-- Hier können später einzelne Spieler/Seiten hinzugefügt werden -->
+    </div>
+  </nav>
+
+  <h1>Spielerliste</h1>
+
+  <div class="filter-container">
+  <input type="text" id="search-input" placeholder="Spieler suchen...">
+  <select id="position-filter">
+    <option value="">Alle Positionen</option>
+  </select>
+  <select id="team-filter">
+    <option value="">Alle Teams</option>
+  </select>
+</div>
+
+  <!-- Tabelle -->
+  <table id="players-table">
+    <thead>
+      <tr>
+        <th>Player ID</th>
+        <th>Name</th>
+        <th>Position</th>
+        <th>Team</th>
+        <th>Contract</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script src="players.js"></script>
+</body>
+</html>

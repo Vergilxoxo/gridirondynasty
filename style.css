@@ -1,0 +1,226 @@
+/* ----------------------
+   Allgemeine Body-Styles
+------------------------*/
+body {
+  font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background-color: #102131;
+  color: #ffffff;
+  margin: 0;
+  padding: 20px;
+}
+
+h1 {
+  color: #ffffff;
+  margin-bottom: 20px;
+}
+
+h2 {
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+/* ----------------------
+   Filterbereich (Players)
+------------------------*/
+.filter-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+.filter-container input,
+.filter-container select,
+#roster-select {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  outline: none;
+  background-color: #1b2a3a;
+  color: #ffffff;
+  transition: background-color 0.2s;
+}
+
+.filter-container input:hover,
+.filter-container select:hover,
+#roster-select:hover {
+  background-color: #223348;
+}
+
+/* Filter Input */
+.filter-container input {
+  flex: 1 1 200px;
+}
+
+/* Filter Select */
+.filter-container select,
+#roster-select {
+  flex: 0 0 150px;
+}
+
+/* ----------------------
+   Tabellen-Stil
+------------------------*/
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  background-color: #1b2a3a;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  margin-top: 10px;
+}
+
+thead th {
+  background-color: #162332;
+  color: #ffffff;
+  font-weight: 600;
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid #2c3e50;
+}
+
+tbody td {
+  padding: 10px;
+  border-top: 1px solid #223348;
+  color: #dcdcdc;
+}
+
+tbody tr:hover {
+  background-color: #223348;
+}
+
+/* Spieler-Links */
+tbody td a {
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+tbody td a:hover {
+  color: #1e90ff;
+  text-decoration: underline;
+}
+
+/* ----------------------
+   Responsive Styles
+------------------------*/
+@media (max-width: 768px) {
+  .filter-container,
+  #roster-select-container {
+    flex-direction: column;
+  }
+
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  thead tr {
+    display: none;
+  }
+
+  tbody tr {
+    margin-bottom: 15px;
+    border-bottom: 2px solid #223348;
+  }
+
+  tbody td {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    border: none;
+  }
+
+  tbody td::before {
+    content: attr(data-label);
+    font-weight: bold;
+    color: #bbbbbb;
+  }
+}
+
+/* ----------------------
+   Zurück-Button
+------------------------*/
+.back-button {
+  display: inline-block;
+  margin-bottom: 15px;
+  padding: 6px 12px;
+  background-color: #162332;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 6px;
+  transition: background-color 0.2s, color 0.2s, transform 0.2s;
+}
+
+.back-button:hover {
+  background-color: #1e90ff;
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+/* ----------------------
+   Navbar / Header
+------------------------*/
+.navbar {
+  background-color: #162332;
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.navbar-container {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.navbar a {
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.navbar a:hover {
+  background-color: #1e90ff;
+  color: #ffffff;
+}
+
+/* ----------------------
+   Roster Dropdown Container (kompakt)
+------------------------*/
+#roster-select-container {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+#roster-select-container label {
+  font-weight: 600;
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 1;
+  margin: 0 0 4px 0; /* EIN definierter Abstand */
+}
+
+/* ----------------------
+   Roster Filter kompakt
+------------------------*/
+.roster-filter {
+  margin-bottom: 8px; /* weniger Abstand als Filter */
+}
+
+.roster-filter label {
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  align-self: center;
+}

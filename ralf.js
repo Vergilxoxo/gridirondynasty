@@ -65,6 +65,9 @@ async function loadRosterPage(rosterId) {
       th.addEventListener("click", () => sortTable(tableId, th.cellIndex));
       row.appendChild(th);
     });
+    
+    renderSalaryCapBlock(sheetData, cutSheetData, rosterName, yearCols, activeIds, irIds);
+    setupRosterVisibilityToggles();
   });
 
   function mapPlayer(id) {
@@ -298,6 +301,31 @@ function sortTable(tableId, colIndex) {
   });
   rows.forEach(r => tbody.appendChild(r));
   table.dataset.asc = asc;
+}
+
+// ----------------------------
+// Sichtbarkeit Active / Taxi / IR
+// ----------------------------
+function setupRosterVisibilityToggles() {
+  const toggleMap = [
+    { checkbox: "toggle-active", section: "section-active" },
+    { checkbox: "toggle-taxi", section: "section-taxi" },
+    { checkbox: "toggle-ir", section: "section-ir" }
+  ];
+
+  toggleMap.forEach(({ checkbox, section }) => {
+    const cb = document.getElementById(checkbox);
+    const sec = document.getElementById(section);
+    if (!cb || !sec) return;
+
+    const updateVisibility = () => {
+      sec.style.display = cb.checked ? "" : "none";
+    };
+
+    cb.removeEventListener("change", updateVisibility); // Sicherheit
+    cb.addEventListener("change", updateVisibility);
+    updateVisibility(); // Initialzustand
+  });
 }
 
 // ----------------------------

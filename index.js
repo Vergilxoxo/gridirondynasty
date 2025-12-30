@@ -73,6 +73,8 @@ async function renderTeamCapBlock() {
     container.style.fontFamily = '"Inter", "Helvetica Neue", Helvetica, Arial, sans-serif';
     container.style.fontSize = "14px";
     container.style.lineHeight = "1.4";
+    container.style.overflowX = "hidden"; // <- Scroll verhindern
+    container.style.boxSizing = "border-box"; // <- padding innerhalb der Breite
 
     const dashboard = document.querySelector("h1");
     if (dashboard) {
@@ -92,10 +94,11 @@ async function renderTeamCapBlock() {
   header.style.marginBottom = "8px";
   header.style.fontSize = "14px";
   header.style.gap = "8px";
+  header.style.minWidth = "0"; // <- wichtig
   header.innerHTML = `
-    <span style="flex:1.5">Owner</span>
-    <span style="flex:1; text-align:right">Team Cap Space</span>
-    <span style="flex:1; text-align:right">FAAB</span>
+    <span style="flex:1.5; min-width:0;">Owner</span>
+    <span style="flex:1; text-align:right; min-width:0;">Team Cap Space</span>
+    <span style="flex:1; text-align:right; min-width:0;">FAAB</span>
   `;
   container.appendChild(header);
 
@@ -122,6 +125,7 @@ async function renderTeamCapBlock() {
     row.style.borderRadius = "6px";
     row.style.transition = "background-color 0.2s";
     row.style.cursor = "default";
+    row.style.minWidth = "0"; // <- wichtig
     if (index % 2 === 0) row.style.backgroundColor = "#1f2b3d";
 
     row.addEventListener("mouseover", () => row.style.backgroundColor = "#223348");
@@ -130,17 +134,20 @@ async function renderTeamCapBlock() {
     const ownerSpan = document.createElement("span");
     ownerSpan.textContent = owner;
     ownerSpan.style.flex = "1.5";
+    ownerSpan.style.minWidth = "0";
 
     const capSpan = document.createElement("span");
     capSpan.textContent = formatMoney(capSpace);
     capSpan.style.color = capSpace < 0 ? "#ff4d4d" : "#ffffff";
     capSpan.style.flex = "1";
+    capSpan.style.minWidth = "0";
     capSpan.style.textAlign = "right";
 
     const faabSpan = document.createElement("span");
     faabSpan.textContent = faab;
     faabSpan.style.color = faab < 0 ? "#ff4d4d" : "#ffffff";
     faabSpan.style.flex = "1";
+    faabSpan.style.minWidth = "0";
     faabSpan.style.textAlign = "right";
 
     row.appendChild(ownerSpan);
@@ -187,6 +194,8 @@ async function renderVeteranTaxiBlock() {
     container.style.fontFamily = '"Inter", "Helvetica Neue", Helvetica, Arial, sans-serif';
     container.style.fontSize = "14px";
     container.style.lineHeight = "1.4";
+    container.style.overflowX = "hidden"; // <- Scroll verhindern
+    container.style.boxSizing = "border-box"; // <- padding innerhalb der Breite
 
     const capBlock = document.getElementById("team-cap-block");
     if (capBlock) {
@@ -206,11 +215,12 @@ async function renderVeteranTaxiBlock() {
   header.style.marginBottom = "8px";
   header.style.fontSize = "14px";
   header.style.gap = "8px";
+  header.style.minWidth = "0"; // <- wichtig
   header.innerHTML = `
-    <span style="flex:2">Player</span>
-    <span style="flex:1">Position</span>
-    <span style="flex:1">Owner</span>
-    <span style="flex:1">Contract</span>
+    <span style="flex:2; min-width:0;">Player</span>
+    <span style="flex:1; min-width:0;">Position</span>
+    <span style="flex:1; min-width:0;">Owner</span>
+    <span style="flex:1; min-width:0;">Contract</span>
   `;
   container.appendChild(header);
 
@@ -232,6 +242,7 @@ async function renderVeteranTaxiBlock() {
     row.style.borderRadius = "6px";
     row.style.transition = "background-color 0.2s";
     row.style.cursor = "default";
+    row.style.minWidth = "0"; // <- wichtig
     if (index % 2 === 0) row.style.backgroundColor = "#1f2b3d";
 
     row.addEventListener("mouseover", () => row.style.backgroundColor = "#223348");
@@ -240,18 +251,22 @@ async function renderVeteranTaxiBlock() {
     const nameSpan = document.createElement("span");
     nameSpan.textContent = p.Name || "-";
     nameSpan.style.flex = "2";
+    nameSpan.style.minWidth = "0";
 
     const posSpan = document.createElement("span");
     posSpan.textContent = p.Position || "-";
     posSpan.style.flex = "1";
+    posSpan.style.minWidth = "0";
 
     const ownerSpan = document.createElement("span");
     ownerSpan.textContent = p.owner || "-";
     ownerSpan.style.flex = "1";
+    ownerSpan.style.minWidth = "0";
 
     const contractSpan = document.createElement("span");
     contractSpan.textContent = p.Contract || "-";
     contractSpan.style.flex = "1";
+    contractSpan.style.minWidth = "0";
 
     row.appendChild(nameSpan);
     row.appendChild(posSpan);

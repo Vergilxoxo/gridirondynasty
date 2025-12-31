@@ -3,6 +3,7 @@ ToDo for me:
 - Vielleicht irgendwie noch eine Überschrift für den Veteran Taxi Block
 - Sortierung in Player List funktioniert noch nicht wie es soll
 - Suche/Filter für UDFA noch einbauen
+- Wenn man auf die Player Card bei UDFA klickt steht da oben trotzdem Zurück auf Spielerseite dabei sollte aber zurück auf UDFA kommen
 
 Erledigt:
 

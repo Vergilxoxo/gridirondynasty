@@ -396,3 +396,31 @@ tbody td a:hover {
   top: 8px;
   right: 8px;
 }
+
+/* ----------------------
+   Sortier Cursor CSS
+------------------------*/
+
+thead th {
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+}
+
+thead th::after {
+  content: "⇅";
+  font-size: 11px;
+  margin-left: 6px;
+  color: #6c8db5;
+}
+
+thead th.sort-asc::after {
+  content: "▲";
+  color: #1e90ff;
+}
+
+thead th.sort-desc::after {
+  content: "▼";
+  color: #1e90ff;
+}
+

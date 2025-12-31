@@ -3,6 +3,7 @@
 // ------------------------------------
 
 const leagueId = "1207768406841892864"; // Deine League ID
+const currentSeason = new Date().getFullYear(); // z.B. 2025
 
 // Owner Map für Dynasty Teams
 const ownerMap = {
@@ -29,6 +30,13 @@ async function fetchSheetPlayers() {
 // Sleeper API Player Daten abrufen
 async function fetchSleeperPlayers() {
   const res = await fetch("https://api.sleeper.app/v1/players/nfl");
+  return await res.json();
+}
+
+async function fetchSeasonStats(season = currentSeason) {
+  const res = await fetch(
+    `https://api.sleeper.app/v1/stats/nfl/regular/${season}`
+  );
   return await res.json();
 }
 
@@ -77,6 +85,7 @@ function calculateYearSalary(player) {
 
   return count > 0 ? `$${(total / count).toLocaleString('de-DE')}` : "-";
 }
+
 
 // Player Page laden
 async function loadPlayerPage(playerId) {
@@ -141,6 +150,73 @@ async function loadPlayerPage(playerId) {
       setTimeout(() => el.classList.add('visible'), 100);
     });
   });
+  loadSeasonPerformance(playerId, sleeperData);
+}
+
+// Season Performance Block
+// Position Rank
+function calculatePositionRank(stats, playerId, positionMap) {
+  // positionMap = { player_id: "WR", ... } (aus deinem Sheet oder Sleeper)
+  const playerPos = positionMap[playerId];
+  if (!playerPos) return "-";
+
+  // Filter alle Spieler der gleichen Position
+  const samePos = Object.entries(stats)
+    .filter(([pid, s]) => positionMap[pid] === playerPos)
+    .map(([pid, s]) => ({ pid, pts: s.pts_ppr ?? 0 }));
+
+  // Sort descending
+  samePos.sort((a, b) => b.pts - a.pts);
+
+  // Finde Rank
+  const rank = samePos.findIndex(p => p.pid === playerId) + 1;
+  return `${rank}/${samePos.length}`; // z.B. 5/120
+}
+
+async function loadSeasonPerformance(playerId, sleeperData) {
+  const stats = await fetchSeasonStats();
+  const p = stats[playerId];
+
+  const grid = document.getElementById("performance-grid");
+
+  if (!p) {
+    grid.innerHTML = "<p class='empty'>Keine Stats für diese Saison</p>";
+    return;
+  }
+
+  // Position Map erstellen
+  const positionMap = {};
+  Object.values(sleeperData).forEach(pl => {
+    positionMap[pl.player_id] = pl.position;
+  });
+
+  const total = p.pts_ppr ?? 0;
+  const games = p.gp ?? 0;
+  const ppg = games > 0 ? (total / games).toFixed(2) : "0.00";
+  const posRank = calculatePositionRank(stats, playerId, positionMap);
+
+  grid.innerHTML = `
+  <div class="stat-box">
+    <span class="icon">⚡</span>
+    <strong>Total Points</strong>
+    <span>${total.toFixed(1)}</span>
+  </div>
+  <div class="stat-box">
+    <span class="icon">🎮</span>
+    <strong>Games Played</strong>
+    <span>${games}</span>
+  </div>
+  <div class="stat-box">
+    <span class="icon">📈</span>
+    <strong>Points / Game</strong>
+    <span>${ppg}</span>
+  </div>
+  <div class="stat-box">
+    <span class="icon">🏆</span>
+    <strong>Position Rank</strong>
+    <span>${posRank}</span>
+  </div>
+`;
 }
 
 // URL-Parameter auslesen

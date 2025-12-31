@@ -1,37 +1,120 @@
-// ------------------------------------
-// undrafted-taxi.js
-// ------------------------------------
+const leagueId = "1207768406841892864";
 
-let allPlayers = [];
-
-// Sheet laden
+// ----------------------------
+// Fetcher
+// ----------------------------
 async function fetchSheetPlayers() {
   const res = await fetch("https://opensheet.elk.sh/1TmZedqXNrEZ-LtPxma7AemFsKOoHErFgZhjIOK3C0hc/Sheet1");
   return await res.json();
 }
 
-// Sleeper API
 async function fetchSleeperPlayers() {
   const res = await fetch("https://api.sleeper.app/v1/players/nfl");
   return await res.json();
 }
 
-// Prüft, ob Spieler in irgendeinem Taxi Squad ist
-function getTaxiSquads(player) {
-  return Object.keys(player)
-    .filter(k => k.toLowerCase().includes("taxi"))
-    .filter(k => player[k] && player[k].trim() !== "")
-    .map(k => player[k]);
+async function fetchRosters() {
+  const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/rosters`);
+  return await res.json();
 }
 
+// ----------------------------
+// States
+// ----------------------------
+let allPlayers = [];
+let filteredPlayers = [];
+
+let currentSort = {
+  key: null,
+  direction: "asc"
+};
+
+// ----------------------------
+// Init
+// ----------------------------
+async function initUndraftedTaxi() {
+  const sheetData = await fetchSheetPlayers();
+  const sleeperData = await fetchSleeperPlayers();
+  const rosters = await fetchRosters();
+
+  // Alle Taxi IDs der Liga sammeln
+  const taxiIds = new Set();
+  rosters.forEach(r => {
+    (r.taxi || []).forEach(id => taxiIds.add(String(id)));
+  });
+
+  // Spieler filtern & mappen
+  const players = sheetData
+    .filter(p => {
+      const id = String(p["Player ID"]);
+      const isTaxi = taxiIds.has(id);
+      const isUndrafted =
+        p["Contract"] &&
+        p["Contract"].toString().toLowerCase().includes("undrafted");
+      return isTaxi && isUndrafted;
+    })
+    .map(p => {
+      const sleeper = Object.values(sleeperData)
+        .find(sp => String(sp.player_id) === String(p["Player ID"])) || {};
+      return {
+        ...p,
+        full_name: sleeper.full_name || "Unbekannt",
+        position: sleeper.position || "-",
+        team: sleeper.team || "-"
+      };
+    });
+
+  allPlayers = players;
+  filteredPlayers = players;
+  buildTable(filteredPlayers);
+}
+
+// ----------------------------
+// Sortierung
+function parseSortableValue(val, key) {
+  if (val === null || val === undefined) return "";
+
+  // Player ID als Zahl
+  if (key === "Player ID") {
+    const num = parseInt(val.toString().replace(/[^0-9]/g, ""));
+    return isNaN(num) ? 0 : num;
+  }
+
+  // Contract als Text
+  if (key === "Contract") {
+    return val.toString().toLowerCase();
+  }
+
+  // Sonstige Spalten (Name, Position, Team) als Text
+  return val.toString().toLowerCase();
+}
+
+function sortPlayers(players) {
+  if (!currentSort.key) return players;
+
+  return [...players].sort((a, b) => {
+    const aVal = parseSortableValue(a[currentSort.key], currentSort.key);
+    const bVal = parseSortableValue(b[currentSort.key], currentSort.key);
+
+    if (typeof aVal === "number" && typeof bVal === "number") {
+      return currentSort.direction === "asc" ? aVal - bVal : bVal - aVal;
+    }
+
+    return currentSort.direction === "asc"
+      ? aVal.localeCompare(bVal, "de", { numeric: true })
+      : bVal.localeCompare(aVal, "de", { numeric: true });
+  });
+}
+
+// ----------------------------
 // Tabelle bauen
 function buildTable(players) {
   const tbody = document.querySelector("#undrafted-table tbody");
   tbody.innerHTML = "";
 
-  players.forEach(p => {
-    const taxiSquads = getTaxiSquads(p);
+  const sorted = sortPlayers(players);
 
+  sorted.forEach(p => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${p["Player ID"]}</td>
@@ -42,37 +125,30 @@ function buildTable(players) {
       </td>
       <td>${p.position}</td>
       <td>${p.team}</td>
-      <td>${taxiSquads.join(", ")}</td>
+      <td>${p.Contract}</td>
     `;
     tbody.appendChild(tr);
   });
 }
 
-// Init
-async function init() {
-  const sheetData = await fetchSheetPlayers();
-  const sleeperData = await fetchSleeperPlayers();
+// ----------------------------
+// Header Klick für Sortierung
+document.querySelectorAll("#undrafted-table thead th").forEach(th => {
+  const key = th.dataset.key;
+  if (!key) return;
 
-  allPlayers = sheetData.map(p => {
-    const sleeperPlayer = Object.values(sleeperData)
-      .find(sp => sp.player_id === p["Player ID"]);
+  th.onclick = () => {
+    if (currentSort.key === key) {
+      currentSort.direction =
+        currentSort.direction === "asc" ? "desc" : "asc";
+    } else {
+      currentSort.key = key;
+      currentSort.direction = "asc";
+    }
+    buildTable(filteredPlayers);
+  };
+});
 
-    return {
-      ...p,
-      full_name: sleeperPlayer?.full_name || "Unbekannt",
-      position: sleeperPlayer?.position || "-",
-      team: sleeperPlayer?.team || "-"
-    };
-  });
-
-  // 🔥 FILTER: Undrafted + mindestens ein Taxi Squad
-  const undraftedTaxiPlayers = allPlayers.filter(p => {
-    const isUndrafted = p["Contract"] === "Undrafted";
-    const taxiSquads = getTaxiSquads(p);
-    return isUndrafted && taxiSquads.length > 0;
-  });
-
-  buildTable(undraftedTaxiPlayers);
-}
-
-init();
+// ----------------------------
+// Start
+initUndraftedTaxi();

@@ -41,13 +41,20 @@ async function loadDynastyTeam(playerId, dynastyElement) {
 
     if (roster) {
       const teamName = ownerMap[roster.owner_id] || "Unbekannt";
-      dynastyElement.textContent = `Dynasty Team: ${teamName}`;
+      dynastyElement.innerHTML = `<strong>Dynasty Team</strong><span>${teamName}</span>`;
+
     } else {
-      dynastyElement.textContent = "Dynasty Team: Nicht gefunden";
+      dynastyElement.innerHTML = `<strong>Dynasty Team</strong><span>Nicht gefunden</span>
+`;
+
+
     }
   } catch (err) {
     console.error(err);
     dynastyElement.textContent = "Dynasty Team: Fehler beim Laden";
+    dynastyElement.innerHTML = `<strong>Dynasty Team</strong><span>Fehler beim Laden</span>
+`;
+
   }
 }
 
@@ -89,17 +96,34 @@ async function loadPlayerPage(playerId) {
   const team = sleeperPlayer?.team || player["team"] || "-";
 
   const playerDiv = document.getElementById("player");
+  const imageUrl = `https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`;
+
   playerDiv.innerHTML = `
     <a href="players.html" class="back-button">← Zurück zur Spielerliste</a>
-    <div class="player-card-header">
-      <h1>${fullName}</h1>
-      <span class="player-info">Position: ${position}</span>
-      <span class="player-info">NFL Team: ${team}</span>
+
+    <div class="player-profile">
+      <div class="player-image">
+        <img src="${imageUrl}" alt="${fullName}"
+           onerror="this.src='https://sleepercdn.com/images/nfl/nfl_player_placeholder.png'">
+      </div>
+
+      <div class="player-details">
+        <h1>${fullName}</h1>
+
+        <div class="badge-row">
+          <span class="badge">${position}</span>
+          <span class="badge secondary">${team}</span>
+        </div>
+
+        <div class="info-grid">
+          <div><strong>Contract</strong><span>${player["Contract"] || "-"}</span></div>
+          <div><strong>Year Average Salary</strong><span>${calculateYearSalary(player)}</span></div>
+          <div id="dynasty-team"><strong>Dynasty Team</strong><span>Lädt…</span></div>
+        </div>
+      </div>
     </div>
-    <p class="fade-detail"><strong>Contract:</strong> ${player["Contract"] || "-"}</p>
-    <p class="fade-detail"><strong>Year Salary:</strong> ${calculateYearSalary(player)}</p>
-    <p id="dynasty-team" class="fade-detail"><strong>Dynasty Team:</strong> Lädt…</p>
   `;
+
 
   // Vertragsjahre Tabelle füllen
   const tbody = document.querySelector("#contract-table tbody");

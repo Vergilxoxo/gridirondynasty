@@ -10,4 +10,4 @@ Erledigt:
 - Nicht funktionierende Toogle View gefixt
 - Veteran Taxi not working with Name and Team
 - Sort Player List
-- - UDFA Players
+- UDFA Players

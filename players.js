@@ -19,10 +19,55 @@ async function fetchSleeperPlayers() {
   return data;
 }
 
+// Sortierfunktion
+let currentSort = {
+  key: null,
+  direction: "asc" // asc | desc
+};
+
+function sortPlayers(players) {
+  if (!currentSort.key) return players;
+
+  return [...players].sort((a, b) => {
+    let valA = a[currentSort.key] ?? "";
+    let valB = b[currentSort.key] ?? "";
+
+    // Zahlen erkennen
+    const numA = parseMoney(valA);
+    const numB = parseMoney(valB);
+    const bothNumeric = !isNaN(numA) && !isNaN(numB);
+
+    if (bothNumeric) {
+      return currentSort.direction === "asc"
+        ? numA - numB
+        : numB - numA;
+    }
+
+    // Textvergleich
+    return currentSort.direction === "asc"
+      ? valA.toString().localeCompare(valB.toString(), "de", { numeric: true })
+      : valB.toString().localeCompare(valA.toString(), "de", { numeric: true });
+  });
+}
+
+// Parse Money Values fuer Sortierung
+function parseMoney(value) {
+  if (typeof value !== "string") return NaN;
+
+  return Number(
+    value
+      .replace(/[^0-9.,-]/g, "") // alles außer Zahlen , . -
+      .replace(/\./g, "")        // Tausenderpunkte entfernen
+      .replace(/,/g, ".")        // Komma → Dezimalpunkt
+  );
+}
+
 // Tabelle bauen
 function buildPlayerTable(players) {
   const tbody = document.querySelector("#players-table tbody");
   tbody.innerHTML = "";
+
+  players = sortPlayers(players);
 
   // Jahres-Spalten automatisch erkennen
   const allYears = new Set();
@@ -37,6 +82,7 @@ function buildPlayerTable(players) {
     if (![...theadRow.children].some(th => th.textContent === y)) {
       const th = document.createElement("th");
       th.textContent = y;
+      th.dataset.key = y;
       theadRow.appendChild(th);
     }
   });
@@ -58,7 +104,31 @@ function buildPlayerTable(players) {
     });
     tbody.appendChild(tr);
   });
+
+    // Sortier-Header aktivieren
+  document.querySelectorAll("#players-table thead th").forEach(th => {
+    const key = th.dataset.key;
+    if (!key) return;
+
+    th.onclick = () => {
+      if (currentSort.key === key) {
+        currentSort.direction = currentSort.direction === "asc" ? "desc" : "asc";
+      } else {
+        currentSort.key = key;
+        currentSort.direction = "asc";
+      }
+      applyFilters();
+    };
+
+    th.classList.remove("sort-asc", "sort-desc");
+    if (currentSort.key === key) {
+      th.classList.add(
+        currentSort.direction === "asc" ? "sort-asc" : "sort-desc"
+      );
+    }
+  });
 }
+
 
 // Filter/Search anwenden
 function applyFilters() {

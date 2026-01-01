@@ -66,7 +66,11 @@ async function initUndraftedTaxi() {
 
   allPlayers = players;
   filteredPlayers = players;
-  buildTable(filteredPlayers);
+
+  buildPositionFilter(allPlayers);
+  applyFilters();
+
+
 }
 
 // ----------------------------
@@ -119,7 +123,7 @@ function buildTable(players) {
     tr.innerHTML = `
       <td>${p["Player ID"]}</td>
       <td>
-        <a href="udfa-player.html?id=${p["Player ID"]}" class="player-link">
+        <a href="player.html?id=${p["Player ID"]}" class="player-link">
           ${p.full_name}
         </a>
       </td>
@@ -148,6 +152,68 @@ document.querySelectorAll("#undrafted-table thead th").forEach(th => {
     buildTable(filteredPlayers);
   };
 });
+
+function applyFilters() {
+  const searchInput = document.getElementById("search-input");
+  const positionSelect = document.getElementById("position-filter");
+
+  const search = searchInput ? searchInput.value.toLowerCase() : "";
+  const position = positionSelect ? positionSelect.value : "";
+
+  filteredPlayers = allPlayers.filter(p => {
+    const matchesSearch =
+      p.full_name.toLowerCase().includes(search) ||
+      String(p["Player ID"]).includes(search) ||
+      (p.team || "").toLowerCase().includes(search);
+
+    const matchesPosition =
+      !position || p.position === position;
+
+    return matchesSearch && matchesPosition;
+  });
+
+  buildTable(filteredPlayers);
+}
+
+
+
+function buildPositionFilter(players) {
+  const select = document.getElementById("position-filter");
+  if (!select) return;
+
+  // alte Optionen entfernen (außer "Alle")
+  select.querySelectorAll("option:not(:first-child)").forEach(o => o.remove());
+
+  const positions = [...new Set(
+    players
+      .map(p => p.position)
+      .filter(pos => pos && pos !== "-")
+  )].sort();
+
+  positions.forEach(pos => {
+    const option = document.createElement("option");
+    option.value = pos;
+    option.textContent = pos;
+    select.appendChild(option);
+  });
+}
+
+
+// Eventlistener
+const searchInput = document.getElementById("search-input");
+const positionFilter = document.getElementById("position-filter");
+
+if (searchInput) {
+  searchInput.addEventListener("input", applyFilters);
+}
+
+if (positionFilter) {
+  positionFilter.addEventListener("change", applyFilters);
+}
+
+
+
+
 
 // ----------------------------
 // Start

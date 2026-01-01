@@ -108,7 +108,7 @@ async function loadPlayerPage(playerId) {
   const imageUrl = `https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`;
 
   playerDiv.innerHTML = `
-    <a href="undrafted-taxi.html" class="back-button">← Zurück zur Spielerliste</a>
+    <a href="undrafted-taxi.html" class="back-button">← Zurück zur UDFA</a>
 
     <div class="player-profile">
       <div class="player-image">

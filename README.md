@@ -2,7 +2,6 @@ ToDo for me:
 - Salary Page für 2026
 - Vielleicht irgendwie noch eine Überschrift für den Veteran Taxi Block
 - Suche/Filter für UDFA noch einbauen
-- Wenn man auf die Player Card bei UDFA klickt steht da oben trotzdem Zurück auf Spielerseite dabei sollte aber zurück auf UDFA kommen
 
 Erledigt:
 
@@ -11,3 +10,4 @@ Erledigt:
 - Sort Player List
 - UDFA Players
 - Sortierung Player List läuft
+- Wenn man auf die Player Card bei UDFA klickt steht da oben trotzdem Zurück auf Spielerseite dabei sollte aber zurück auf UDFA kommen

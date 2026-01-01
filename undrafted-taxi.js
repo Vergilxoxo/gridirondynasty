@@ -119,7 +119,7 @@ function buildTable(players) {
     tr.innerHTML = `
       <td>${p["Player ID"]}</td>
       <td>
-        <a href="player.html?id=${p["Player ID"]}" class="player-link">
+        <a href="udfa-player.html?id=${p["Player ID"]}" class="player-link">
           ${p.full_name}
         </a>
       </td>

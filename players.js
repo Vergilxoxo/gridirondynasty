@@ -33,8 +33,12 @@ function sortPlayers(players) {
     let valB = b[currentSort.key] ?? "";
 
     // Zahlen erkennen
-    const numA = parseMoney(valA);
-    const numB = parseMoney(valB);
+    const isPureNumber = v =>
+      typeof v === "number" ||
+      (typeof v === "string" && /^[\d.,€$ ]+$/.test(v));
+
+    const numA = isPureNumber(valA) ? parseMoney(valA) : NaN;
+    const numB = isPureNumber(valB) ? parseMoney(valB) : NaN;
     const bothNumeric = !isNaN(numA) && !isNaN(numB);
 
     if (bothNumeric) {

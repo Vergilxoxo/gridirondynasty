@@ -181,13 +181,25 @@ async function renderVeteranTaxiBlock() {
   }
 
   container.innerHTML = `
-    <div style="display:flex;font-weight:600;background:#162332;padding:6px 12px;border-radius:6px;margin-bottom:8px">
-      <span style="flex:2">Player</span>
-      <span style="flex:1">Position</span>
-      <span style="flex:1">Owner</span>
-      <span style="flex:1">Contract</span>
-    </div>
-  `;
+  <!-- Überschrift -->
+  <h2 style="
+    margin: 0 0 12px 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+  ">
+    Veteran on Taxi
+  </h2>
+
+  <!-- Tabellen-Header -->
+  <div style="display:flex;font-weight:600;background:#162332;padding:6px 12px;border-radius:6px;margin-bottom:8px">
+    <span style="flex:2">Player</span>
+    <span style="flex:1">Position</span>
+    <span style="flex:1">Owner</span>
+    <span style="flex:1">Contract</span>
+  </div>
+`;
+
 
   if (!taxiPlayers.length) {
     container.innerHTML += `<div style="padding:6px 12px;color:#bbb">Keine Veteran-Taxi-Spieler vorhanden.</div>`;
@@ -212,4 +224,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   await renderTeamCapBlock();  // Warten, bis Team-Cap-Block komplett aufgebaut ist
   await renderVeteranTaxiBlock(); // dann Veteran-Taxi-Block
 });
+
 

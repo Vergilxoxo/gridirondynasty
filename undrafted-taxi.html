@@ -12,12 +12,28 @@
     <div class="navbar-container">
       <a href="index.html" class="nav-logo">Dashboard</a>
       <a href="roster.html" class="nav-link">Roster</a>
-      <a href="undrafted-taxi.html" class="nav-link">UDFA</a>
+      <a href="undrafted-taxi.html" class="nav-link">Undrafted Taxi</a>
       <a href="players.html" class="nav-link">Spielerliste</a>
     </div>
   </nav>
 
+  
+
   <h1>Undrafted Spieler im Taxi Squad</h1>
+
+  <div class="filter-container">
+  <input
+    type="text"
+    id="search-input"
+    placeholder="Spieler suchen..."
+  >
+
+  <select id="position-filter">
+    <option value="">Alle Positionen</option>
+  </select>
+</div>
+
+
 
   <!-- Tabelle -->
   <table id="undrafted-table">

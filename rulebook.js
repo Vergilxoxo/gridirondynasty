@@ -1,4 +1,4 @@
-async function loadRegelwerk() {
+async function loadRulebook() {
   const res = await fetch(
     "https://opensheet.elk.sh/1TmZedqXNrEZ-LtPxma7AemFsKOoHErFgZhjIOK3C0hc/Regelwerk"
   );
@@ -53,4 +53,4 @@ async function loadRegelwerk() {
     });
 }
 
-document.addEventListener("DOMContentLoaded", loadRegelwerk);
+document.addEventListener("DOMContentLoaded", loadRulebook);

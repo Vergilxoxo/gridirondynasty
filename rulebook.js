@@ -65,39 +65,47 @@ async function loadRulebook() {
           container.appendChild(el);
         return;
 
-        case "table":
-          el = document.createElement("table");
-          el.className = "docs-table";
+        let currentTable = null;
 
-          // Header
-          if (row.columns) {
-            const thead = document.createElement("thead");
-            const tr = document.createElement("tr");
-            row.columns.split("|").forEach(h => {
-              const th = document.createElement("th");
-              th.textContent = h.trim();
-              tr.appendChild(th);
-            });
-            thead.appendChild(tr);
-            el.appendChild(thead);
+        rows.sort((a,b) => Number(a.order) - Number(b.order)).forEach(row => {
+          switch(row.type) {
+            case "table_start":
+              currentTable = document.createElement("table");
+              currentTable.className = "docs-table";
+              // Header
+              if(row.columns){
+                const thead = document.createElement("thead");
+                const tr = document.createElement("tr");
+                row.columns.split("|").forEach(h => {
+                  const th = document.createElement("th");
+                  th.textContent = h.trim();
+                  tr.appendChild(th);
+                });
+                thead.appendChild(tr);
+                currentTable.appendChild(thead);
+              }
+              currentTable.appendChild(document.createElement("tbody"));
+              container.appendChild(currentTable);
+              break;
+        
+            case "table_row":
+              if(!currentTable) return;
+              const tr = document.createElement("tr");
+              row.content.split("|").forEach(c => {
+                const td = document.createElement("td");
+                td.textContent = c.trim();
+                tr.appendChild(td);
+              });
+              currentTable.querySelector("tbody").appendChild(tr);
+              break;
+        
+            case "table_end":
+              currentTable = null;
+              break;
+        
+            // bestehende Typen h1, h2, p, link bleiben gleich
           }
-
-          // Body
-          const tbody = document.createElement("tbody");
-          // Jede Zeile kann mehrere Zellen haben, ebenfalls mit |
-          const cells = row.content.split("|").map(c => c.trim());
-          const tr = document.createElement("tr");
-          cells.forEach(c => {
-            const td = document.createElement("td");
-            td.textContent = c;
-            tr.appendChild(td);
-          });
-          tbody.appendChild(tr);
-          el.appendChild(tbody);
-
-          container.appendChild(el);
-        return;
-
+        });
         default:
           return;
       }

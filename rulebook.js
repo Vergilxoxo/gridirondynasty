@@ -64,7 +64,40 @@ async function loadRulebook() {
             .join("");
           container.appendChild(el);
         return;
-          
+
+        case "table":
+          el = document.createElement("table");
+          el.className = "docs-table";
+
+          // Header
+          if (row.columns) {
+            const thead = document.createElement("thead");
+            const tr = document.createElement("tr");
+            row.columns.split("|").forEach(h => {
+              const th = document.createElement("th");
+              th.textContent = h.trim();
+              tr.appendChild(th);
+            });
+            thead.appendChild(tr);
+            el.appendChild(thead);
+          }
+
+          // Body
+          const tbody = document.createElement("tbody");
+          // Jede Zeile kann mehrere Zellen haben, ebenfalls mit |
+          const cells = row.content.split("|").map(c => c.trim());
+          const tr = document.createElement("tr");
+          cells.forEach(c => {
+            const td = document.createElement("td");
+            td.textContent = c;
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+          el.appendChild(tbody);
+
+          container.appendChild(el);
+        return;
+
         default:
           return;
       }

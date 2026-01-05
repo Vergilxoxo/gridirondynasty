@@ -45,6 +45,26 @@ async function loadRulebook() {
           el.textContent = row.content;
           break;
 
+        case "ul":
+          el = document.createElement("ul");
+          el.className = "docs-ul";
+          el.innerHTML = row.content
+            .split("|")
+            .map(i => `<li>${i.trim()}</li>`)
+            .join("");
+          container.appendChild(el);
+        return;
+
+      case "ol":
+        el = document.createElement("ol");
+        el.className = "docs-ol";
+        el.innerHTML = row.content
+          .split("|")
+          .map(i => `<li>${i.trim()}</li>`)
+          .join("");
+        container.appendChild(el);
+      return;
+          
         default:
           return;
       }

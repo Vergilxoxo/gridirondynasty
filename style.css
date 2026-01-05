@@ -521,5 +521,35 @@ thead th.sort-desc::after {
   }
 }
 
+.docs-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #1b2a3a;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.docs-table th {
+  background-color: #162332;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #223348;
+}
+
+.docs-table td {
+  padding: 10px;
+  color: #dcdcdc;
+  border-top: 1px solid #223348;
+}
+
+.docs-table tr:hover td {
+  background-color: #223348;
+}
+
 
 

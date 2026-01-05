@@ -55,15 +55,15 @@ async function loadRulebook() {
           container.appendChild(el);
         return;
 
-      case "ol":
-        el = document.createElement("ol");
-        el.className = "docs-ol";
-        el.innerHTML = row.content
-          .split("|")
-          .map(i => `<li>${i.trim()}</li>`)
-          .join("");
-        container.appendChild(el);
-      return;
+        case "ol":
+          el = document.createElement("ol");
+          el.className = "docs-ol";
+          el.innerHTML = row.content
+            .split("|")
+            .map(i => `<li>${i.trim()}</li>`)
+            .join("");
+          container.appendChild(el);
+        return;
           
         default:
           return;

@@ -74,35 +74,48 @@ async function loadRulebook() {
         case "table_start":
           currentTable = document.createElement("table");
           currentTable.className = "docs-table";
+        
           if (row.columns) {
             const thead = document.createElement("thead");
             const tr = document.createElement("tr");
+        
+            // Spalten sauber splitten und trimmen
             row.columns.split("|").forEach(h => {
               const th = document.createElement("th");
               th.textContent = h.trim();
+              th.style.backgroundColor = "#162332";  // Darkmode Header
+              th.style.color = "#ffffff";
+              th.style.fontWeight = "600";
+              th.style.padding = "10px";
+              th.style.textAlign = "left";
+              th.style.borderBottom = "1px solid #223348";
               tr.appendChild(th);
             });
+        
             thead.appendChild(tr);
             currentTable.appendChild(thead);
           }
+        
+          // tbody hinzufügen
           currentTable.appendChild(document.createElement("tbody"));
           container.appendChild(currentTable);
           break;
 
-        case "table_row":
-          if (!currentTable) return;
-          const tr = document.createElement("tr");
-          row.content.split("|").forEach(c => {
-            const td = document.createElement("td");
-            td.textContent = c.trim();
-            tr.appendChild(td);
-          });
-          currentTable.querySelector("tbody").appendChild(tr);
-          break;
 
-        case "table_end":
-          currentTable = null;
-          break;
+          case "table_row":
+            if (!currentTable) return;
+            const tr = document.createElement("tr");
+            row.content.split("|").forEach(c => {
+              const td = document.createElement("td");
+              td.textContent = c.trim();
+              tr.appendChild(td);
+            });
+            currentTable.querySelector("tbody").appendChild(tr);
+            break;
+
+            case "table_end":
+              currentTable = null;
+              break;
 
         default:
           return;

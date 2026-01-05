@@ -441,4 +441,85 @@ thead th.sort-desc::after {
   text-decoration: underline;
 }
 
+/* ----------------------
+   Regelwerk Block
+------------------------*/
+#docs-block {
+  width: 100%;
+  background-color: #1b2a3a;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  border: 1px solid #162332;
+  color: #ffffff;
+  font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* Headings */
+.docs-h1 {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.docs-h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #223348;
+  padding-bottom: 6px;
+}
+
+.docs-h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  color: #1e90ff;
+}
+
+/* Paragraph */
+.docs-p {
+  margin-bottom: 12px;
+  color: #dcdcdc;
+}
+
+/* Links */
+.docs-link {
+  display: inline-block;
+  margin: 6px 0 12px 0;
+  color: #ffffff;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.docs-link:hover {
+  color: #1e90ff;
+}
+
+/* Lists */
+.docs-ul, .docs-ol {
+  margin-left: 20px;
+  margin-bottom: 16px;
+}
+
+.docs-ul li, .docs-ol li {
+  margin-bottom: 6px;
+  color: #dcdcdc;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  #docs-block {
+    padding: 15px;
+  }
+}
+
+
 

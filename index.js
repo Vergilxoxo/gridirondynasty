@@ -42,7 +42,7 @@ async function fetchCutSheet() {
 }
 
 async function fetchRosters() {
-  const res = await fetch("https://api.sleeper.app/v1/league/1207768406841892864/rosters");
+  const res = await fetch("https://api.sleeper.app/v1/league/1311998228123643904/rosters");
   return await res.json();
 }
 
@@ -224,5 +224,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   await renderTeamCapBlock();  // Warten, bis Team-Cap-Block komplett aufgebaut ist
   await renderVeteranTaxiBlock(); // dann Veteran-Taxi-Block
 });
+
 
 

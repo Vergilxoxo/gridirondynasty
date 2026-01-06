@@ -2,7 +2,8 @@
 // player.js
 // ------------------------------------
 
-const leagueId = "1207768406841892864"; // Deine League ID
+//const leagueId = "1207768406841892864"; // Deine League ID
+const leagueId = "1311998228123643904";
 const currentSeason = new Date().getFullYear(); // z.B. 2025
 
 // Owner Map für Dynasty Teams

@@ -10,11 +10,18 @@
   <div class="page-container">
     <h1>Salary Übersicht</h1>
 
+    <!-- Dropdown für Position -->
     <div class="filter-container">
+      <label for="position-select">Position:</label>
+      <select id="position-select">
+        <option value="QB">QB</option>
+        <option value="WR">WR</option>
+      </select>
+
       <input type="text" id="search-input" placeholder="Spieler suchen...">
     </div>
 
-    <table id="qb-salary-table">
+    <table id="salary-table">
       <thead>
         <tr>
           <th>Player</th>

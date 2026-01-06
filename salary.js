@@ -1,7 +1,7 @@
 // Sheet URLs
 const sheets = {
   QB: "https://opensheet.elk.sh/1TmZedqXNrEZ-LtPxma7AemFsKOoHErFgZhjIOK3C0hc/QBSalary",
-  WR: "https://opensheet.elk.sh/1TmZedqXNrEZ-LtPxma7AemFsKOoHErFgZhjIOK3C0hc/WR Salary"
+  WR: "https://opensheet.elk.sh/1TmZedqXNrEZ-LtPxma7AemFsKOoHErFgZhjIOK3C0hc/WRSalary"
 };
 
 let currentData = []; // aktuell geladene Tabelle

@@ -1,10 +1,22 @@
-const sheetUrl = "https://opensheet.elk.sh/1TmZedqXNrEZ-LtPxma7AemFsKOoHErFgZhjIOK3C0hc/QBSalary";
+// Sheet URLs
+const sheets = {
+  QB: "https://opensheet.elk.sh/1TmZedqXNrEZ-LtPxma7AemFsKOoHErFgZhjIOK3C0hc/QBSalary",
+  WR: "https://opensheet.elk.sh/1TmZedqXNrEZ-LtPxma7AemFsKOoHErFgZhjIOK3C0hc/WR Salary"
+};
 
-async function loadQBSalary() {
-  const res = await fetch(sheetUrl);
+let currentData = []; // aktuell geladene Tabelle
+
+// Daten laden
+async function loadSalary(position) {
+  const res = await fetch(sheets[position]);
   const data = await res.json();
+  currentData = data;
+  renderTable(data);
+}
 
-  const tbody = document.querySelector("#qb-salary-table tbody");
+// Tabelle rendern
+function renderTable(data) {
+  const tbody = document.querySelector("#salary-table tbody");
   tbody.innerHTML = "";
 
   data.forEach(p => {
@@ -18,16 +30,31 @@ async function loadQBSalary() {
 }
 
 // Filter Input
-document.addEventListener("DOMContentLoaded", () => {
+function setupFilter() {
   const searchInput = document.getElementById("search-input");
 
   searchInput.addEventListener("input", () => {
     const filter = searchInput.value.toLowerCase();
-    document.querySelectorAll("#qb-salary-table tbody tr").forEach(row => {
-      const playerName = row.firstElementChild.textContent.toLowerCase();
+
+    document.querySelectorAll("#salary-table tbody tr").forEach((row, index) => {
+      const playerName = currentData[index]["Player"].toLowerCase();
       row.style.display = playerName.includes(filter) ? "" : "none";
     });
   });
+}
 
-  loadQBSalary();
+// Dropdown wechseln
+function setupDropdown() {
+  const select = document.getElementById("position-select");
+  select.addEventListener("change", () => {
+    loadSalary(select.value);
+    document.getElementById("search-input").value = "";
+  });
+}
+
+// Init
+document.addEventListener("DOMContentLoaded", () => {
+  setupFilter();
+  setupDropdown();
+  loadSalary("QB"); // Standard: QB
 });

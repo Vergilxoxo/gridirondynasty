@@ -1,7 +1,10 @@
 // Sheet URLs (korrekte Tab-Namen, Leerzeichen als %20)
 const sheets = {
   QB: "https://opensheet.elk.sh/1TmZedqXNrEZ-LtPxma7AemFsKOoHErFgZhjIOK3C0hc/QBSalary",
+  RB: "https://opensheet.elk.sh/1TmZedqXNrEZ-LtPxma7AemFsKOoHErFgZhjIOK3C0hc/RBSalary"
   WR: "https://opensheet.elk.sh/1TmZedqXNrEZ-LtPxma7AemFsKOoHErFgZhjIOK3C0hc/WRSalary"
+  TE: "https://opensheet.elk.sh/1TmZedqXNrEZ-LtPxma7AemFsKOoHErFgZhjIOK3C0hc/TESalary"
+  DL: "https://opensheet.elk.sh/1TmZedqXNrEZ-LtPxma7AemFsKOoHErFgZhjIOK3C0hc/DLSalary"
 };
 
 let currentData = []; // aktuell geladene Tabelle

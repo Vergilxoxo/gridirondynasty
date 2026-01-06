@@ -1,5 +1,5 @@
-const leagueId = "1207768406841892864";
-
+//const leagueId = "1207768406841892864";
+const leagueId = "1311998228123643904";
 // ----------------------------
 // Daten laden
 // ----------------------------
@@ -336,3 +336,4 @@ document.getElementById("roster-select").addEventListener("change", e => {
 
 // initial laden
 loadRosterPage(document.getElementById("roster-select").value);
+

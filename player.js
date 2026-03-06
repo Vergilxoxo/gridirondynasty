@@ -138,7 +138,7 @@ async function loadPlayerPage(playerId) {
   // Vertragsjahre Tabelle füllen
   const tbody = document.querySelector("#contract-table tbody");
   tbody.innerHTML = "";
-  ["2025","2026","2027","2028"].forEach(y => {
+  ["2026","2027","2028","2029"].forEach(y => {
     const tr = document.createElement("tr");
     tr.innerHTML = `<td>${y}</td><td>${player[y] || "-"}</td>`;
     tbody.appendChild(tr);
@@ -224,6 +224,7 @@ async function loadSeasonPerformance(playerId, sleeperData) {
 const params = new URLSearchParams(window.location.search);
 const playerId = params.get("id");
 if (playerId) loadPlayerPage(playerId);
+
 
 
 

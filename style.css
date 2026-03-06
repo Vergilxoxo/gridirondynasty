@@ -565,11 +565,21 @@ thead th.sort-desc::after {
   object-fit: cover;
 }
 
-.add { color: #28a745; font-weight: 600; }       /* grün */
-.drop { color: #dc3545; font-weight: 600; }      /* rot */
-.waiver { color: #fd7e14; font-weight: 600; }    /* orange */
-.trade { color: #007bff; font-weight: 600; }     /* blau */
-.commissioner { color: #6c757d; font-weight: 600; } /* grau */
+.player-thumb {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.add { color: #28a745; font-weight: 600; }       /* Grün */
+.drop { color: #dc3545; font-weight: 600; }      /* Rot */
+.waiver { color: #ffc107; font-weight: 600; }    /* Gelb */
+.trade { color: #17a2b8; font-weight: 600; }     /* Blau */
+.commissioner { color: #6f42c1; font-weight: 600; } /* Lila */
+.player-cell { display: flex; align-items: center; }
+
 
 
 

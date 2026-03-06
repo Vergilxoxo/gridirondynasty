@@ -69,7 +69,8 @@ async function loadDynastyTeam(playerId, dynastyElement) {
 
 // Year Salary berechnen
 function calculateYearSalary(player) {
-  const years = ["2025","2026","2027","2028"];
+  //const years = ["2025","2026","2027","2028"];
+  const years = ["2026","2027","2028","2029"];
   let total = 0, count = 0;
 
   years.forEach(y => {
@@ -224,4 +225,5 @@ async function loadSeasonPerformance(playerId, sleeperData) {
 const params = new URLSearchParams(window.location.search);
 const playerId = params.get("id");
 if (playerId) loadPlayerPage(playerId);
+
 

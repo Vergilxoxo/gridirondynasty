@@ -1,3 +1,7 @@
+// ------------------------------------
+// transactions.js
+// ------------------------------------
+
 const leagueId = "1311998228123643904";
 
 const ownerMap = {
@@ -18,30 +22,14 @@ const ownerMap = {
 let playerMap = {};
 let rosterOwnerMap = {}; // roster_id -> owner_id
 
-// -------------- Spieler laden ----------------
-async function loadPlayers() {
-  const res = await fetch("https://api.sleeper.app/v1/players/nfl");
-  const players = await res.json();
-  Object.values(players).forEach(p => {
-    playerMap[p.player_id] = p.full_name;
-  });
-}
-
-// -------------- Roster laden ----------------
-async function loadRosters() {
-  const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/rosters`);
-  const rosters = await res.json();
-  rosters.forEach(r => {
-    rosterOwnerMap[r.roster_id] = r.owner_id;
-  });
-}
-
-// -------------- Typ lesbarer darstellen ----------------
+// --------------------------
+// Spielerbilder & Typen
+// --------------------------
 function formatType(type) {
   switch(type) {
-    case "add":
-    case "free_agent": return { label: "Aufgenommen", class: "add" };
-    case "drop": return { label: "Verlassen", class: "drop" };
+    case "add": return { label: "Aufgenommen", class: "add" };
+    case "drop":
+    case "free_agent": return { label: "Verlassen", class: "drop" }; // free_agent als Drop
     case "waiver": return { label: "Waiver", class: "waiver" };
     case "trade": return { label: "Trade", class: "trade" };
     case "commissioner": return { label: "Commissioner Move", class: "commissioner" };
@@ -49,34 +37,36 @@ function formatType(type) {
   }
 }
 
-// -------------- Einzelne Zeile erstellen ----------------
-function addRow(tbody, date, type, playerId, fromRoster, toRoster) {
-  const tr = document.createElement("tr");
+// --------------------------
+// Sleeper Player Daten laden
+// --------------------------
+async function loadPlayers() {
+  const res = await fetch("https://api.sleeper.app/v1/players/nfl");
+  const players = await res.json();
 
-  const { label: typeLabel, class: typeClass } = formatType(type);
-
-  const playerName = playerMap[playerId] || playerId;
-  const playerImg = `https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`;
-
-  const fromTeam = ownerMap[rosterOwnerMap[fromRoster]] || "-";
-  const toTeam = ownerMap[rosterOwnerMap[toRoster]] || "-";
-
-  tr.innerHTML = `
-    <td>${date}</td>
-    <td class="${typeClass}">${typeLabel}</td>
-    <td class="player-cell">
-      <img src="${playerImg}" 
-           onerror="this.src='https://sleepercdn.com/images/nfl/nfl_player_placeholder.png'">
-      ${playerName}
-    </td>
-    <td>${fromTeam}</td>
-    <td>${toTeam}</td>
-  `;
-
-  tbody.appendChild(tr);
+  Object.values(players).forEach(p => {
+    playerMap[p.player_id] = {
+      name: p.full_name,
+      image: `https://sleepercdn.com/content/nfl/players/thumb/${p.player_id}.jpg`
+    };
+  });
 }
 
-// -------------- Transactions laden ----------------
+// --------------------------
+// Roster laden (für Teamnamen)
+// --------------------------
+async function loadRosters() {
+  const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/rosters`);
+  const rosters = await res.json();
+
+  rosters.forEach(r => {
+    rosterOwnerMap[r.roster_id] = r.owner_id;
+  });
+}
+
+// --------------------------
+// Transactions laden
+// --------------------------
 async function loadTransactions() {
   let allTransactions = [];
 
@@ -93,31 +83,57 @@ async function loadTransactions() {
   renderTransactions(allTransactions);
 }
 
-// -------------- Tabelle rendern ----------------
+// --------------------------
+// Tabelle anzeigen
+// --------------------------
 function renderTransactions(transactions) {
   const tbody = document.querySelector("#transactions-table tbody");
   tbody.innerHTML = "";
 
   transactions.forEach(t => {
-    const date = new Date(t.created).toLocaleDateString("de-DE");
+    let players = [];
 
-    // Adds
-    if (t.adds) {
-      Object.entries(t.adds).forEach(([pid, roster]) => {
-        addRow(tbody, date, t.type, pid, null, roster);
-      });
-    }
+    if (t.adds) players = Object.keys(t.adds);
+    if (t.drops) players = players.concat(Object.keys(t.drops));
 
-    // Drops
-    if (t.drops) {
-      Object.entries(t.drops).forEach(([pid, roster]) => {
-        addRow(tbody, date, t.type, pid, roster, null);
-      });
-    }
+    players.forEach(pid => {
+      const tr = document.createElement("tr");
+
+      const player = playerMap[pid];
+      const playerName = player ? player.name : pid;
+      const playerImage = player
+        ? `<img class="player-thumb" src="${player.image}" onerror="this.src='https://sleepercdn.com/images/nfl/nfl_player_placeholder.png'" alt="${playerName}">`
+        : "";
+
+      const fromRoster = t.drops?.[pid];
+      const toRoster = t.adds?.[pid];
+
+      const fromOwner = rosterOwnerMap[fromRoster];
+      const toOwner = rosterOwnerMap[toRoster];
+
+      const fromTeam = ownerMap[fromOwner] || "-";
+      const toTeam = ownerMap[toOwner] || "-";
+
+      const date = new Date(t.created).toLocaleDateString("de-DE");
+
+      const typeInfo = formatType(t.type);
+
+      tr.innerHTML = `
+        <td>${date}</td>
+        <td class="${typeInfo.class}">${typeInfo.label}</td>
+        <td class="player-cell">${playerImage} ${playerName}</td>
+        <td>${fromTeam}</td>
+        <td>${toTeam}</td>
+      `;
+
+      tbody.appendChild(tr);
+    });
   });
 }
 
-// -------------- Suche / Filter ----------------
+// --------------------------
+// Suche
+// --------------------------
 function setupFilter() {
   const input = document.getElementById("search-input");
   input.addEventListener("input", () => {
@@ -129,7 +145,9 @@ function setupFilter() {
   });
 }
 
-// -------------- Init ----------------
+// --------------------------
+// Init
+// --------------------------
 document.addEventListener("DOMContentLoaded", async () => {
   await loadPlayers();
   await loadRosters();

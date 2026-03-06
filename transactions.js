@@ -31,10 +31,21 @@ async function loadPlayers() {
 async function loadTransactions() {
 
   const season = new Date().getFullYear();
-  const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/transactions/${season}/1`);
-  const transactions = await res.json();
+  let allTransactions = [];
 
-  renderTransactions(transactions);
+  // Sleeper hat max ~18 Wochen
+  for (let week = 1; week <= 18; week++) {
+
+    const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/transactions/${season}/${week}`);
+    const weekTransactions = await res.json();
+
+    if (weekTransactions && weekTransactions.length > 0) {
+      allTransactions = allTransactions.concat(weekTransactions);
+    }
+
+  }
+
+  renderTransactions(allTransactions);
 }
 
 // Tabelle anzeigen

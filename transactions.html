@@ -1,111 +1,32 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<title>League Transactions</title>
-
-<style>
-body {
-  font-family: Arial;
-  background: #0f172a;
-  color: white;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th, td {
-  padding: 10px;
-  border-bottom: 1px solid #334155;
-  text-align: left;
-}
-
-th {
-  background: #1e293b;
-}
-</style>
-
+  <meta charset="UTF-8">
+  <title>League Transactions</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <h1>League Transactions</h1>
 
-<table id="transactionsTable">
-<thead>
-<tr>
-<th>Week</th>
-<th>Type</th>
-<th>Players Added</th>
-<th>Players Dropped</th>
-</tr>
-</thead>
-<tbody></tbody>
+<div class="filter-container">
+  <input type="text" id="search-input" placeholder="Spieler suchen...">
+</div>
+
+<table id="transactions-table">
+  <thead>
+    <tr>
+      <th>Datum</th>
+      <th>Typ</th>
+      <th>Spieler</th>
+      <th>Von</th>
+      <th>Zu</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
 </table>
 
-<script>
-
-const leagueId = "1311998228123643904";
-const season = "2026";
-
-async function loadTransactions() {
-
-let allTransactions = [];
-
-for (let week = 0; week <= 18; week++) {
-
-const res = await fetch(
-`https://api.sleeper.app/v1/league/${leagueId}/transactions/${season}/${week}`
-);
-
-if (res.ok) {
-const data = await res.json();
-data.forEach(t => t.week = week);
-allTransactions.push(...data);
-}
-
-}
-
-renderTransactions(allTransactions);
-
-}
-
-function renderTransactions(transactions) {
-
-const table = document.querySelector("#transactionsTable tbody");
-
-transactions.forEach(t => {
-
-let added = "";
-let dropped = "";
-
-if (t.adds) {
-added = Object.values(t.adds).join(", ");
-}
-
-if (t.drops) {
-dropped = Object.values(t.drops).join(", ");
-}
-
-const row = document.createElement("tr");
-
-row.innerHTML = `
-<td>${t.week}</td>
-<td>${t.type}</td>
-<td>${added}</td>
-<td>${dropped}</td>
-`;
-
-table.appendChild(row);
-
-});
-
-}
-
-loadTransactions();
-
-</script>
+<script src="transactions.js"></script>
 
 </body>
 </html>

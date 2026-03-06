@@ -16,136 +16,108 @@ const ownerMap = {
 };
 
 let playerMap = {};
-let rosterOwnerMap = {}; // roster_id -> owner_id
+let rosterOwnerMap = {};
 
-// Sleeper Player Daten
+// Spieler laden
 async function loadPlayers() {
   const res = await fetch("https://api.sleeper.app/v1/players/nfl");
   const players = await res.json();
-
   Object.values(players).forEach(p => {
     playerMap[p.player_id] = p.full_name;
   });
 }
 
-// Roster laden (für Teamnamen)
+// Roster laden
 async function loadRosters() {
-
   const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/rosters`);
   const rosters = await res.json();
-
-  rosters.forEach(r => {
-    rosterOwnerMap[r.roster_id] = r.owner_id;
-  });
-
+  rosters.forEach(r => rosterOwnerMap[r.roster_id] = r.owner_id);
 }
 
 // Transactions laden
 async function loadTransactions() {
-
   let allTransactions = [];
-
   for (let week = 1; week <= 18; week++) {
-
     try {
-
       const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/transactions/${week}`);
       const data = await res.json();
-
-      if (data && data.length > 0) {
-        allTransactions = allTransactions.concat(data);
-      }
-
+      if (data && data.length > 0) allTransactions.push(...data);
     } catch (err) {
       console.error("Fehler bei Woche", week, err);
     }
-
   }
-
-  console.log("Alle Transactions:", allTransactions);
-
   renderTransactions(allTransactions);
 }
 
-// Tabelle anzeigen
+// Tabelle rendern
 function renderTransactions(transactions) {
-
   const tbody = document.querySelector("#transactions-table tbody");
   tbody.innerHTML = "";
 
-  transactions.forEach(t => {
+  if (transactions.length === 0) return;
 
-    let players = [];
+  transactions
+    .sort((a,b)=> b.created - a.created)
+    .forEach(t => {
 
+    const date = new Date(t.created).toLocaleDateString("de-DE");
+
+    // Adds
     if (t.adds) {
-      players = Object.keys(t.adds);
+      Object.entries(t.adds).forEach(([pid, roster]) => {
+        addRow(date, t.type, pid, roster, "ADD");
+      });
     }
 
+    // Drops
     if (t.drops) {
-      players = players.concat(Object.keys(t.drops));
+      Object.entries(t.drops).forEach(([pid, roster]) => {
+        addRow(date, t.type, pid, roster, "DROP");
+      });
     }
-
-    players.forEach(pid => {
-
-      const tr = document.createElement("tr");
-
-      const playerName = playerMap[pid] || pid;
-
-      const fromRoster = t.drops?.[pid];
-      const toRoster = t.adds?.[pid];
-
-      const fromOwner = rosterOwnerMap[fromRoster];
-      const toOwner = rosterOwnerMap[toRoster];
-
-      const fromTeam = ownerMap[fromOwner] || "-";
-      const toTeam = ownerMap[toOwner] || "-";
-
-      const date = new Date(t.created).toLocaleDateString("de-DE");
-
-      tr.innerHTML = `
-        <td>${date}</td>
-        <td>${t.type}</td>
-        <td>${playerName}</td>
-        <td>${fromTeam}</td>
-        <td>${toTeam}</td>
-      `;
-
-      tbody.appendChild(tr);
-
-    });
 
   });
+}
 
+// Zeile hinzufügen
+function addRow(date, type, playerId, rosterId, action) {
+  const tbody = document.querySelector("#transactions-table tbody");
+  const tr = document.createElement("tr");
+
+  const playerName = playerMap[playerId] || playerId;
+  const playerImg = `https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg`;
+  const teamName = ownerMap[rosterOwnerMap[rosterId]] || "-";
+
+  tr.innerHTML = `
+    <td>${date}</td>
+    <td class="${action.toLowerCase()}">${type}</td>
+    <td class="player-cell">
+      <img src="${playerImg}" onerror="this.src='https://sleepercdn.com/images/nfl/nfl_player_placeholder.png'">
+      ${playerName}
+    </td>
+    <td>${action==="ADD"? "-": teamName}</td>
+    <td>${action==="DROP"? "-": teamName}</td>
+  `;
+
+  tbody.appendChild(tr);
 }
 
 // Suche
 function setupFilter() {
-
   const input = document.getElementById("search-input");
-
   input.addEventListener("input", () => {
-
     const filter = input.value.toLowerCase();
-
     document.querySelectorAll("#transactions-table tbody tr").forEach(row => {
-
       const player = row.children[2].textContent.toLowerCase();
-
       row.style.display = player.includes(filter) ? "" : "none";
-
     });
-
   });
-
 }
 
 // Init
 document.addEventListener("DOMContentLoaded", async () => {
-
   await loadPlayers();
   await loadRosters();
   await loadTransactions();
-
   setupFilter();
-
 });

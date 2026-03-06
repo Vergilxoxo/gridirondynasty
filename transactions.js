@@ -27,12 +27,12 @@ let rosterOwnerMap = {}; // roster_id -> owner_id
 // --------------------------
 function formatType(type) {
   switch(type) {
-    case "add": return { label: "Aufgenommen", class: "add" };
+    case "add": return { label: "Signing", class: "add" };
     case "drop":
-    case "free_agent": return { label: "Verlassen", class: "drop" }; // free_agent als Drop
-    case "waiver": return { label: "Waiver", class: "waiver" };
+    case "free_agent": return { label: "Drop", class: "drop" }; // free_agent als Drop
+    case "waiver": return { label: "Signing", class: "waiver" };
     case "trade": return { label: "Trade", class: "trade" };
-    case "commissioner": return { label: "Commissioner Move", class: "commissioner" };
+    case "commissioner": return { label: "Commissioner", class: "commissioner" };
     default: return { label: type, class: "" };
   }
 }

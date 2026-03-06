@@ -551,5 +551,18 @@ thead th.sort-desc::after {
   background-color: #223348;
 }
 
+/* Transactions Player Cell */
+.player-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.player-cell img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
 
 

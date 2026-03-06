@@ -565,4 +565,11 @@ thead th.sort-desc::after {
   object-fit: cover;
 }
 
+.add { color: #28a745; font-weight: 600; }       /* grün */
+.drop { color: #dc3545; font-weight: 600; }      /* rot */
+.waiver { color: #fd7e14; font-weight: 600; }    /* orange */
+.trade { color: #007bff; font-weight: 600; }     /* blau */
+.commissioner { color: #6c757d; font-weight: 600; } /* grau */
+
+
 

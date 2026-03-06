@@ -1,4 +1,4 @@
-const leagueId = ""1311998228123643904";
+const leagueId = "1311998228123643904";
 
 const ownerMap = {
   "465132695723175936": "Wombat Warriors",
@@ -16,6 +16,7 @@ const ownerMap = {
 };
 
 let playerMap = {};
+let rosterOwnerMap = {}; // roster_id -> owner_id
 
 // Sleeper Player Daten
 async function loadPlayers() {
@@ -27,15 +28,27 @@ async function loadPlayers() {
   });
 }
 
+// Roster laden (für Teamnamen)
+async function loadRosters() {
+
+  const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/rosters`);
+  const rosters = await res.json();
+
+  rosters.forEach(r => {
+    rosterOwnerMap[r.roster_id] = r.owner_id;
+  });
+
+}
+
 // Transactions laden
 async function loadTransactions() {
 
-  const season = new Date().getFullYear();
   let allTransactions = [];
 
   for (let week = 1; week <= 18; week++) {
 
     try {
+
       const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/transactions/${week}`);
       const data = await res.json();
 
@@ -62,7 +75,6 @@ function renderTransactions(transactions) {
 
   transactions.forEach(t => {
 
-    let type = t.type;
     let players = [];
 
     if (t.adds) {
@@ -79,14 +91,20 @@ function renderTransactions(transactions) {
 
       const playerName = playerMap[pid] || pid;
 
-      const fromTeam = ownerMap[t.drops?.[pid]] || "-";
-      const toTeam = ownerMap[t.adds?.[pid]] || "-";
+      const fromRoster = t.drops?.[pid];
+      const toRoster = t.adds?.[pid];
+
+      const fromOwner = rosterOwnerMap[fromRoster];
+      const toOwner = rosterOwnerMap[toRoster];
+
+      const fromTeam = ownerMap[fromOwner] || "-";
+      const toTeam = ownerMap[toOwner] || "-";
 
       const date = new Date(t.created).toLocaleDateString("de-DE");
 
       tr.innerHTML = `
         <td>${date}</td>
-        <td>${type}</td>
+        <td>${t.type}</td>
         <td>${playerName}</td>
         <td>${fromTeam}</td>
         <td>${toTeam}</td>
@@ -125,6 +143,7 @@ function setupFilter() {
 document.addEventListener("DOMContentLoaded", async () => {
 
   await loadPlayers();
+  await loadRosters();
   await loadTransactions();
 
   setupFilter();

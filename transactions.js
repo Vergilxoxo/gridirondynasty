@@ -36,7 +36,7 @@ async function loadTransactions() {
   for (let week = 1; week <= 18; week++) {
 
     try {
-      const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/transactions/${season}/${week}`);
+      const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/transactions/${week}`);
       const data = await res.json();
 
       if (data && data.length > 0) {

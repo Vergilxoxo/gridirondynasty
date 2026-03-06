@@ -33,17 +33,23 @@ async function loadTransactions() {
   const season = new Date().getFullYear();
   let allTransactions = [];
 
-  // Sleeper hat max ~18 Wochen
-  for (let week = 0; week <= 18; week++) {
+  for (let week = 1; week <= 18; week++) {
 
-    const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/transactions/${season}/${week}`);
-    const weekTransactions = await res.json();
+    try {
+      const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/transactions/${season}/${week}`);
+      const data = await res.json();
 
-    if (weekTransactions && weekTransactions.length > 0) {
-      allTransactions = allTransactions.concat(weekTransactions);
+      if (data && data.length > 0) {
+        allTransactions = allTransactions.concat(data);
+      }
+
+    } catch (err) {
+      console.error("Fehler bei Woche", week, err);
     }
 
   }
+
+  console.log("Alle Transactions:", allTransactions);
 
   renderTransactions(allTransactions);
 }

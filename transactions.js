@@ -34,7 +34,7 @@ async function loadTransactions() {
   let allTransactions = [];
 
   // Sleeper hat max ~18 Wochen
-  for (let week = 1; week <= 18; week++) {
+  for (let week = 0; week <= 18; week++) {
 
     const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/transactions/${season}/${week}`);
     const weekTransactions = await res.json();

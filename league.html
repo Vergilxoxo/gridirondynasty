@@ -1,12 +1,32 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>League Dashboard</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
 <body>
 
 <div class="league-container">
 
 <h1>League Dashboard</h1>
 
+
+<!-- League Stats -->
+<div id="league-stats"></div>
+
+
+<!-- Standings -->
 <h2>Standings</h2>
 
 <table id="standings-table">
+
 <thead>
 <tr>
 <th>Rank</th>
@@ -17,19 +37,27 @@
 <th>Points Against</th>
 </tr>
 </thead>
+
 <tbody></tbody>
+
 </table>
 
 
+<!-- Matchups -->
+
 <h2>Matchups</h2>
 
-<label>Week:</label>
+<label for="week-select">Week:</label>
+
 <select id="week-select"></select>
 
 <div id="matchups"></div>
 
 </div>
 
+
 <script src="league.js"></script>
 
 </body>
+
+</html>

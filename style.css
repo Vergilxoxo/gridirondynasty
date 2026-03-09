@@ -588,6 +588,7 @@ thead th.sort-desc::after {
 .league-container {
   max-width: 1100px;
   margin: auto;
+  margin-top: 30px;
   padding: 20px;
 }
 
@@ -698,5 +699,6 @@ thead th.sort-desc::after {
   height: 28px;
   border-radius: 50%;
 }
+
 
 

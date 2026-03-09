@@ -16,12 +16,19 @@
     <h1>🏈 Gridiron Dynasty League</h1>
     <p>Season 2026</p>
   </header>
-
-  <!-- League Stats Cards -->
-  <section id="league-stats" class="stats-cards">
-    <!-- Dynamisch gefüllt durch league.js -->
+  
+  <!-- Matchups -->
+  <section class="matchups-section">
+    <h2>Matchups</h2>
+    <div class="week-select-container">
+      <label for="week-select">Woche wählen:</label>
+      <select id="week-select"></select>
+    </div>
+    <div id="matchups" class="matchups-grid">
+      <!-- Dynamisch gefüllt durch league.js -->
+    </div>
   </section>
-
+  
   <!-- Standings -->
   <section class="standings-section">
     <h2>Standings</h2>
@@ -40,16 +47,9 @@
     </table>
   </section>
 
-  <!-- Matchups -->
-  <section class="matchups-section">
-    <h2>Matchups</h2>
-    <div class="week-select-container">
-      <label for="week-select">Woche wählen:</label>
-      <select id="week-select"></select>
-    </div>
-    <div id="matchups" class="matchups-grid">
-      <!-- Dynamisch gefüllt durch league.js -->
-    </div>
+   <!-- League Stats Cards -->
+  <section id="league-stats" class="stats-cards">
+    <!-- Dynamisch gefüllt durch league.js -->
   </section>
 
 </div>

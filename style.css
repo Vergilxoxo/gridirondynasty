@@ -612,6 +612,7 @@ thead th.sort-desc::after {
   flex-wrap: wrap;
   gap: 15px;
   margin-bottom: 25px;
+  margin-top: 30px;
 }
 .stats-card {
   flex: 1 1 220px;
@@ -699,6 +700,7 @@ thead th.sort-desc::after {
   height: 28px;
   border-radius: 50%;
 }
+
 
 
 

@@ -4,60 +4,57 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>League Dashboard</title>
-
 <link rel="stylesheet" href="style.css">
-
 </head>
 
 <body>
 
 <div class="league-container">
 
-<h1>League Dashboard</h1>
+  <header class="league-header">
+    <h1>🏈 Dynasty League Dashboard</h1>
+    <p>Season 2025</p>
+  </header>
 
+  <!-- League Stats Cards -->
+  <section id="league-stats" class="stats-cards">
+    <!-- Dynamisch gefüllt durch league.js -->
+  </section>
 
-<!-- League Stats -->
-<div id="league-stats"></div>
+  <!-- Standings -->
+  <section class="standings-section">
+    <h2>Standings</h2>
+    <table id="standings-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Team</th>
+          <th>Wins</th>
+          <th>Losses</th>
+          <th>Points For</th>
+          <th>Points Against</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
 
-
-<!-- Standings -->
-<h2>Standings</h2>
-
-<table id="standings-table">
-
-<thead>
-<tr>
-<th>Rank</th>
-<th>Team</th>
-<th>Wins</th>
-<th>Losses</th>
-<th>Points For</th>
-<th>Points Against</th>
-</tr>
-</thead>
-
-<tbody></tbody>
-
-</table>
-
-
-<!-- Matchups -->
-
-<h2>Matchups</h2>
-
-<label for="week-select">Week:</label>
-
-<select id="week-select"></select>
-
-<div id="matchups"></div>
+  <!-- Matchups -->
+  <section class="matchups-section">
+    <h2>Matchups</h2>
+    <div class="week-select-container">
+      <label for="week-select">Woche wählen:</label>
+      <select id="week-select"></select>
+    </div>
+    <div id="matchups" class="matchups-grid">
+      <!-- Dynamisch gefüllt durch league.js -->
+    </div>
+  </section>
 
 </div>
-
 
 <script src="league.js"></script>
 
 </body>
-
 </html>

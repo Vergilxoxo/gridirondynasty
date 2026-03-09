@@ -15,226 +15,159 @@ const ownerMap = {
   "589565582072918016": "Muenster CardiNils"
 };
 
-let rosterOwnerMap = {};
+let rosterMap = {}; // roster_id -> owner_id
+let leagueMatchups = {}; // week -> array of matchups
 
+// Spieler laden (optional für Stats Cards)
+let playerMap = {};
+async function loadPlayers() {
+  const res = await fetch("https://api.sleeper.app/v1/players/nfl");
+  const data = await res.json();
+  Object.values(data).forEach(p => playerMap[p.player_id] = p.full_name);
+}
 
-// ---------------------
 // Roster laden
-// ---------------------
-
 async function loadRosters() {
-
   const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/rosters`);
   const rosters = await res.json();
-
-  rosters.forEach(r => {
-    rosterOwnerMap[r.roster_id] = r.owner_id;
-  });
-
-  return rosters;
-
+  rosters.forEach(r => rosterMap[r.roster_id] = r.owner_id);
 }
 
-
-// ---------------------
-// Power Ranking
-// ---------------------
-
-function calculatePowerRanking(rosters){
-
-  return [...rosters].sort((a,b)=>{
-
-    const scoreA = (a.settings.wins * 2) + (a.settings.fpts / 100);
-    const scoreB = (b.settings.wins * 2) + (b.settings.fpts / 100);
-
-    return scoreB - scoreA;
-
-  });
-
+// Standings laden
+async function loadStandings() {
+  const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/standings`);
+  const standings = await res.json();
+  renderStandings(standings);
 }
 
-
-// ---------------------
-// League Stats
-// ---------------------
-
-function renderLeagueStats(rosters){
-
-  const container = document.getElementById("league-stats");
-
-  const bestOffense = [...rosters].sort((a,b)=>b.settings.fpts-a.settings.fpts)[0];
-  const bestDefense = [...rosters].sort((a,b)=>a.settings.fpts_against-b.settings.fpts_against)[0];
-  const bestRecord = [...rosters].sort((a,b)=>b.settings.wins-a.settings.wins)[0];
-
-  container.innerHTML = `
-
-  <div class="stat-card">
-  <div class="stat-title">Best Record</div>
-  <div class="stat-value">${ownerMap[bestRecord.owner_id]}</div>
-  </div>
-
-  <div class="stat-card">
-  <div class="stat-title">Best Offense</div>
-  <div class="stat-value">${ownerMap[bestOffense.owner_id]}</div>
-  </div>
-
-  <div class="stat-card">
-  <div class="stat-title">Best Defense</div>
-  <div class="stat-value">${ownerMap[bestDefense.owner_id]}</div>
-  </div>
-
-  `;
-
-}
-
-
-// ---------------------
-// Standings anzeigen
-// ---------------------
-
-function renderStandings(rosters) {
-
+// Standings rendern
+function renderStandings(standings) {
   const tbody = document.querySelector("#standings-table tbody");
   tbody.innerHTML = "";
 
-  rosters = calculatePowerRanking(rosters);
-
-  rosters.forEach((r, index) => {
-
+  standings.forEach((team, index) => {
     const tr = document.createElement("tr");
-
-    const teamName = ownerMap[r.owner_id] || "Unknown";
-
-    const avatar = r.avatar
-      ? `https://sleepercdn.com/avatars/${r.avatar}`
-      : "";
-
+    const owner = ownerMap[team.owner_id] || "-";
     tr.innerHTML = `
       <td>${index + 1}</td>
-
-      <td class="team-cell">
-        ${avatar ? `<img class="team-logo" src="${avatar}">` : ""}
-        ${teamName}
-      </td>
-
-      <td>${r.settings.wins}</td>
-      <td>${r.settings.losses}</td>
-      <td>${r.settings.fpts.toFixed(2)}</td>
-      <td>${r.settings.fpts_against.toFixed(2)}</td>
+      <td>${owner}</td>
+      <td>${team.settings?.wins ?? 0}</td>
+      <td>${team.settings?.losses ?? 0}</td>
+      <td>${team.settings?.fpts ?? 0}</td>
+      <td>${team.settings?.fpts_against ?? 0}</td>
     `;
-
     tbody.appendChild(tr);
-
   });
-
 }
 
-
-// ---------------------
-// Week Selector
-// ---------------------
-
-function initWeekSelector() {
-
-  const select = document.getElementById("week-select");
-
-  for (let i = 1; i <= 18; i++) {
-
-    const option = document.createElement("option");
-
-    option.value = i;
-    option.textContent = `Week ${i}`;
-
-    select.appendChild(option);
-
+// Matchups laden
+async function loadMatchups() {
+  // Wir nehmen z.B. 18 Wochen
+  for (let week = 1; week <= 18; week++) {
+    try {
+      const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/matchups/${week}`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        leagueMatchups[week] = data;
+      }
+    } catch (err) {
+      console.warn("Woche", week, "nicht verfügbar");
+    }
   }
 
-  select.addEventListener("change", () => {
-    loadMatchups(select.value);
+  populateWeekSelect();
+}
+
+// Woche Dropdown füllen
+function populateWeekSelect() {
+  const select = document.getElementById("week-select");
+  select.innerHTML = "";
+  Object.keys(leagueMatchups).forEach(week => {
+    const opt = document.createElement("option");
+    opt.value = week;
+    opt.textContent = `Woche ${week}`;
+    select.appendChild(opt);
   });
 
+  // Standard: erste verfügbare Woche
+  select.value = Object.keys(leagueMatchups)[0] || 1;
+  renderMatchups(select.value);
+
+  select.addEventListener("change", () => {
+    renderMatchups(select.value);
+  });
 }
 
-
-// ---------------------
-// Matchups laden
-// ---------------------
-
-async function loadMatchups(week) {
-
-  const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/matchups/${week}`);
-  const matchups = await res.json();
-
-  renderMatchups(matchups);
-
-}
-
-
-// ---------------------
-// Matchups anzeigen
-// ---------------------
-
-function renderMatchups(matchups) {
-
+// Matchups rendern
+function renderMatchups(week) {
   const container = document.getElementById("matchups");
   container.innerHTML = "";
 
-  const grouped = {};
+  const matchups = leagueMatchups[week];
+  if (!matchups) {
+    container.innerHTML = "<p>Keine Matchups für diese Woche</p>";
+    return;
+  }
 
   matchups.forEach(m => {
+    const homeOwner = ownerMap[m.home_team_id] || "-";
+    const awayOwner = ownerMap[m.away_team_id] || "-";
 
-    if (!grouped[m.matchup_id]) {
-      grouped[m.matchup_id] = [];
-    }
+    const homeScore = m.home_score ?? 0;
+    const awayScore = m.away_score ?? 0;
 
-    grouped[m.matchup_id].push(m);
-
-  });
-
-  Object.values(grouped).forEach(game => {
-
-    if (game.length < 2) return;
-
-    const team1 = game[0];
-    const team2 = game[1];
-
-    const team1Name = ownerMap[rosterOwnerMap[team1.roster_id]];
-    const team2Name = ownerMap[rosterOwnerMap[team2.roster_id]];
-
-    const div = document.createElement("div");
-    div.classList.add("matchup");
-
-    div.innerHTML = `
-      <strong>${team1Name}</strong>
-
-      <div class="score">
-      ${team1.points.toFixed(2)} - ${team2.points.toFixed(2)}
-      </div>
-
-      <strong>${team2Name}</strong>
+    const card = document.createElement("div");
+    card.classList.add("matchup-card");
+    card.innerHTML = `
+      <div class="matchup-team">${homeOwner}</div>
+      <div class="matchup-score">${homeScore}</div>
+      <div class="matchup-vs">vs</div>
+      <div class="matchup-score">${awayScore}</div>
+      <div class="matchup-team">${awayOwner}</div>
     `;
-
-    container.appendChild(div);
-
+    container.appendChild(card);
   });
-
 }
 
+// League Stats Cards
+async function renderLeagueStats() {
+  const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/rosters`);
+  const rosters = await res.json();
+  const container = document.getElementById("league-stats");
+  container.innerHTML = "";
 
-// ---------------------
+  if (!rosters || rosters.length === 0) return;
+
+  // Beste Offense & Defense
+  let bestOffense = rosters[0];
+  let bestDefense = rosters[0];
+  let topScore = rosters[0];
+
+  rosters.forEach(r => {
+    if ((r.settings.fpts ?? 0) > (bestOffense.settings.fpts ?? 0)) bestOffense = r;
+    if ((r.settings.fpts_against ?? 0) < (bestDefense.settings.fpts_against ?? 1000)) bestDefense = r;
+    if ((r.settings.fpts_week ?? 0) > (topScore.settings.fpts_week ?? 0)) topScore = r;
+  });
+
+  const cards = [
+    { title: "Beste Offense", value: `${ownerMap[bestOffense.owner_id] || "-"} (${bestOffense.settings.fpts})` },
+    { title: "Beste Defense", value: `${ownerMap[bestDefense.owner_id] || "-"} (${bestDefense.settings.fpts_against})` },
+    { title: "Top Score Woche", value: `${ownerMap[topScore.owner_id] || "-"} (${topScore.settings.fpts_week ?? 0})` },
+  ];
+
+  cards.forEach(c => {
+    const card = document.createElement("div");
+    card.classList.add("stats-card");
+    card.innerHTML = `<strong>${c.title}</strong><span>${c.value}</span>`;
+    container.appendChild(card);
+  });
+}
+
 // Init
-// ---------------------
-
 document.addEventListener("DOMContentLoaded", async () => {
-
-  const rosters = await loadRosters();
-
-  renderLeagueStats(rosters);
-
-  renderStandings(rosters);
-
-  initWeekSelector();
-
-  loadMatchups(1);
-
+  await loadPlayers();
+  await loadRosters();
+  await loadStandings();
+  await loadMatchups();
+  await renderLeagueStats();
 });

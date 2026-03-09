@@ -639,3 +639,44 @@ thead th.sort-desc::after {
   margin-bottom: 15px;
 }
 
+/* League stats cards */
+
+#league-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: white;
+  padding: 18px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+.stat-title {
+  font-size: 13px;
+  color: #777;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* Team logos */
+
+.team-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.team-logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+

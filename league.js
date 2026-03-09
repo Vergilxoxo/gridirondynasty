@@ -15,125 +15,35 @@ const ownerMap = {
   "589565582072918016": "Muenster CardiNils"
 };
 
-let rosterMap = {}; // roster_id -> owner_id
-let leagueMatchups = {}; // week -> array of matchups
-
-// Spieler laden (optional für Stats Cards)
-let playerMap = {};
-async function loadPlayers() {
-  const res = await fetch("https://api.sleeper.app/v1/players/nfl");
-  const data = await res.json();
-  Object.values(data).forEach(p => playerMap[p.player_id] = p.full_name);
-}
+let rosters = [];
+let matchups = [];
 
 // Roster laden
 async function loadRosters() {
   const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/rosters`);
-  const rosters = await res.json();
-  rosters.forEach(r => rosterMap[r.roster_id] = r.owner_id);
-}
-
-// Standings laden
-async function loadStandings() {
-  const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/standings`);
-  const standings = await res.json();
-  renderStandings(standings);
-}
-
-// Standings rendern
-function renderStandings(standings) {
-  const tbody = document.querySelector("#standings-table tbody");
-  tbody.innerHTML = "";
-
-  standings.forEach((team, index) => {
-    const tr = document.createElement("tr");
-    const owner = ownerMap[team.owner_id] || "-";
-    tr.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${owner}</td>
-      <td>${team.settings?.wins ?? 0}</td>
-      <td>${team.settings?.losses ?? 0}</td>
-      <td>${team.settings?.fpts ?? 0}</td>
-      <td>${team.settings?.fpts_against ?? 0}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+  rosters = await res.json();
 }
 
 // Matchups laden
 async function loadMatchups() {
-  // Wir nehmen z.B. 18 Wochen
+  const season = new Date().getFullYear();
+  const allMatchups = [];
   for (let week = 1; week <= 18; week++) {
     try {
       const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/matchups/${week}`);
       const data = await res.json();
-      if (data && data.length > 0) {
-        leagueMatchups[week] = data;
-      }
+      if (data && data.length > 0) allMatchups.push(...data);
     } catch (err) {
-      console.warn("Woche", week, "nicht verfügbar");
+      console.error("Fehler bei Woche", week, err);
     }
   }
-
-  populateWeekSelect();
+  matchups = allMatchups;
 }
 
-// Woche Dropdown füllen
-function populateWeekSelect() {
-  const select = document.getElementById("week-select");
-  select.innerHTML = "";
-  Object.keys(leagueMatchups).forEach(week => {
-    const opt = document.createElement("option");
-    opt.value = week;
-    opt.textContent = `Woche ${week}`;
-    select.appendChild(opt);
-  });
-
-  // Standard: erste verfügbare Woche
-  select.value = Object.keys(leagueMatchups)[0] || 1;
-  renderMatchups(select.value);
-
-  select.addEventListener("change", () => {
-    renderMatchups(select.value);
-  });
-}
-
-// Matchups rendern
-function renderMatchups(week) {
-  const container = document.getElementById("matchups");
-  container.innerHTML = "";
-
-  const matchups = leagueMatchups[week];
-  if (!matchups) {
-    container.innerHTML = "<p>Keine Matchups für diese Woche</p>";
-    return;
-  }
-
-  matchups.forEach(m => {
-    const homeOwner = ownerMap[m.home_team_id] || "-";
-    const awayOwner = ownerMap[m.away_team_id] || "-";
-
-    const homeScore = m.home_score ?? 0;
-    const awayScore = m.away_score ?? 0;
-
-    const card = document.createElement("div");
-    card.classList.add("matchup-card");
-    card.innerHTML = `
-      <div class="matchup-team">${homeOwner}</div>
-      <div class="matchup-score">${homeScore}</div>
-      <div class="matchup-vs">vs</div>
-      <div class="matchup-score">${awayScore}</div>
-      <div class="matchup-team">${awayOwner}</div>
-    `;
-    container.appendChild(card);
-  });
-}
-
-// League Stats Cards
-async function renderLeagueStats() {
-  const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/rosters`);
-  const rosters = await res.json();
+// League Stats Cards rendern
+function renderLeagueStats() {
   const container = document.getElementById("league-stats");
+  if (!container) return;
   container.innerHTML = "";
 
   if (!rosters || rosters.length === 0) return;
@@ -141,18 +51,28 @@ async function renderLeagueStats() {
   // Beste Offense & Defense
   let bestOffense = rosters[0];
   let bestDefense = rosters[0];
-  let topScore = rosters[0];
+  let topScoreRoster = rosters[0];
+  let maxWeekScore = 0;
 
   rosters.forEach(r => {
     if ((r.settings.fpts ?? 0) > (bestOffense.settings.fpts ?? 0)) bestOffense = r;
     if ((r.settings.fpts_against ?? 0) < (bestDefense.settings.fpts_against ?? 1000)) bestDefense = r;
-    if ((r.settings.fpts_week ?? 0) > (topScore.settings.fpts_week ?? 0)) topScore = r;
+  });
+
+  rosters.forEach(r => {
+    if (r.settings.weekly_scores && r.settings.weekly_scores.length) {
+      const highest = Math.max(...r.settings.weekly_scores);
+      if (highest > maxWeekScore) {
+        maxWeekScore = highest;
+        topScoreRoster = r;
+      }
+    }
   });
 
   const cards = [
     { title: "Beste Offense", value: `${ownerMap[bestOffense.owner_id] || "-"} (${bestOffense.settings.fpts})` },
     { title: "Beste Defense", value: `${ownerMap[bestDefense.owner_id] || "-"} (${bestDefense.settings.fpts_against})` },
-    { title: "Top Score Woche", value: `${ownerMap[topScore.owner_id] || "-"} (${topScore.settings.fpts_week ?? 0})` },
+    { title: "Top Score Woche", value: `${ownerMap[topScoreRoster.owner_id] || "-"} (${maxWeekScore})` },
   ];
 
   cards.forEach(c => {
@@ -163,11 +83,53 @@ async function renderLeagueStats() {
   });
 }
 
+// Matchups rendern
+function renderMatchups() {
+  const container = document.getElementById("matchups-list");
+  if (!container) return;
+  container.innerHTML = "";
+
+  matchups.forEach(m => {
+    const homeOwner = ownerMap[m.home.owner_id] || "-";
+    const awayOwner = ownerMap[m.away.owner_id] || "-";
+    const homeScore = m.home_points?.toFixed(1) ?? "-";
+    const awayScore = m.away_points?.toFixed(1) ?? "-";
+
+    const div = document.createElement("div");
+    div.classList.add("matchup-row");
+    div.innerHTML = `
+      <span>${homeOwner} (${homeScore})</span>
+      <span>vs</span>
+      <span>${awayOwner} (${awayScore})</span>
+    `;
+    container.appendChild(div);
+  });
+}
+
+// League Ranking rendern
+function renderLeagueRanking() {
+  const container = document.getElementById("league-ranking");
+  if (!container) return;
+  container.innerHTML = "";
+
+  if (!rosters || rosters.length === 0) return;
+
+  const sorted = [...rosters].sort((a, b) => (b.settings.fpts ?? 0) - (a.settings.fpts ?? 0));
+
+  sorted.forEach((r, i) => {
+    const div = document.createElement("div");
+    div.classList.add("ranking-row");
+    div.innerHTML = `<strong>${i + 1}. ${ownerMap[r.owner_id] || "-"}</strong> - ${r.settings.fpts ?? 0} Punkte`;
+    container.appendChild(div);
+  });
+}
+
 // Init
 document.addEventListener("DOMContentLoaded", async () => {
-  await loadPlayers();
   await loadRosters();
-  await loadStandings();
   await loadMatchups();
-  await renderLeagueStats();
+
+  renderLeagueStats();
+  renderMatchups();
+  renderLeagueRanking();
 });

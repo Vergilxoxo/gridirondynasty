@@ -17,9 +17,10 @@ const ownerMap = {
 
 let rosterOwnerMap = {};
 
-// --------------------
+
+// ---------------------
 // Roster laden
-// --------------------
+// ---------------------
 
 async function loadRosters() {
 
@@ -31,20 +32,72 @@ async function loadRosters() {
   });
 
   return rosters;
+
 }
 
 
-// --------------------
+// ---------------------
+// Power Ranking
+// ---------------------
+
+function calculatePowerRanking(rosters){
+
+  return [...rosters].sort((a,b)=>{
+
+    const scoreA = (a.settings.wins * 2) + (a.settings.fpts / 100);
+    const scoreB = (b.settings.wins * 2) + (b.settings.fpts / 100);
+
+    return scoreB - scoreA;
+
+  });
+
+}
+
+
+// ---------------------
+// League Stats
+// ---------------------
+
+function renderLeagueStats(rosters){
+
+  const container = document.getElementById("league-stats");
+
+  const bestOffense = [...rosters].sort((a,b)=>b.settings.fpts-a.settings.fpts)[0];
+  const bestDefense = [...rosters].sort((a,b)=>a.settings.fpts_against-b.settings.fpts_against)[0];
+  const bestRecord = [...rosters].sort((a,b)=>b.settings.wins-a.settings.wins)[0];
+
+  container.innerHTML = `
+
+  <div class="stat-card">
+  <div class="stat-title">Best Record</div>
+  <div class="stat-value">${ownerMap[bestRecord.owner_id]}</div>
+  </div>
+
+  <div class="stat-card">
+  <div class="stat-title">Best Offense</div>
+  <div class="stat-value">${ownerMap[bestOffense.owner_id]}</div>
+  </div>
+
+  <div class="stat-card">
+  <div class="stat-title">Best Defense</div>
+  <div class="stat-value">${ownerMap[bestDefense.owner_id]}</div>
+  </div>
+
+  `;
+
+}
+
+
+// ---------------------
 // Standings anzeigen
-// --------------------
+// ---------------------
 
 function renderStandings(rosters) {
 
   const tbody = document.querySelector("#standings-table tbody");
-
   tbody.innerHTML = "";
 
-  rosters.sort((a,b) => b.settings.wins - a.settings.wins);
+  rosters = calculatePowerRanking(rosters);
 
   rosters.forEach((r, index) => {
 
@@ -52,9 +105,18 @@ function renderStandings(rosters) {
 
     const teamName = ownerMap[r.owner_id] || "Unknown";
 
+    const avatar = r.avatar
+      ? `https://sleepercdn.com/avatars/${r.avatar}`
+      : "";
+
     tr.innerHTML = `
       <td>${index + 1}</td>
-      <td>${teamName}</td>
+
+      <td class="team-cell">
+        ${avatar ? `<img class="team-logo" src="${avatar}">` : ""}
+        ${teamName}
+      </td>
+
       <td>${r.settings.wins}</td>
       <td>${r.settings.losses}</td>
       <td>${r.settings.fpts.toFixed(2)}</td>
@@ -68,9 +130,9 @@ function renderStandings(rosters) {
 }
 
 
-// --------------------
+// ---------------------
 // Week Selector
-// --------------------
+// ---------------------
 
 function initWeekSelector() {
 
@@ -94,9 +156,9 @@ function initWeekSelector() {
 }
 
 
-// --------------------
+// ---------------------
 // Matchups laden
-// --------------------
+// ---------------------
 
 async function loadMatchups(week) {
 
@@ -108,14 +170,13 @@ async function loadMatchups(week) {
 }
 
 
-// --------------------
+// ---------------------
 // Matchups anzeigen
-// --------------------
+// ---------------------
 
 function renderMatchups(matchups) {
 
   const container = document.getElementById("matchups");
-
   container.innerHTML = "";
 
   const grouped = {};
@@ -130,7 +191,6 @@ function renderMatchups(matchups) {
 
   });
 
-
   Object.values(grouped).forEach(game => {
 
     if (game.length < 2) return;
@@ -142,14 +202,15 @@ function renderMatchups(matchups) {
     const team2Name = ownerMap[rosterOwnerMap[team2.roster_id]];
 
     const div = document.createElement("div");
-
     div.classList.add("matchup");
 
     div.innerHTML = `
       <strong>${team1Name}</strong>
-      ${team1.points.toFixed(2)}
-      vs
-      ${team2.points.toFixed(2)}
+
+      <div class="score">
+      ${team1.points.toFixed(2)} - ${team2.points.toFixed(2)}
+      </div>
+
       <strong>${team2Name}</strong>
     `;
 
@@ -160,13 +221,15 @@ function renderMatchups(matchups) {
 }
 
 
-// --------------------
+// ---------------------
 // Init
-// --------------------
+// ---------------------
 
 document.addEventListener("DOMContentLoaded", async () => {
 
   const rosters = await loadRosters();
+
+  renderLeagueStats(rosters);
 
   renderStandings(rosters);
 

@@ -584,86 +584,105 @@ thead th.sort-desc::after {
    League Block
 ------------------------*/
 
+/* Container */
 .league-container {
   max-width: 1100px;
   margin: auto;
+  padding: 20px;
 }
 
-#standings-table {
-  width: 100%;
-  border-collapse: collapse;
+/* Header */
+.league-header {
+  text-align: center;
   margin-bottom: 30px;
 }
+.league-header h1 {
+  font-size: 2rem;
+  margin-bottom: 5px;
+}
+.league-header p {
+  font-size: 1.1rem;
+  color: #aaa;
+}
 
-#standings-table th,
-#standings-table td {
-  padding: 10px;
+/* Stats Cards */
+.stats-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+.stats-card {
+  flex: 1 1 220px;
+  background-color: #1b2a3a;
+  padding: 15px;
+  border-radius: 8px;
   text-align: center;
 }
-
-#standings-table thead {
-  background: #1e293b;
-  color: white;
+.stats-card strong {
+  display: block;
+  font-size: 1.2rem;
+  margin-bottom: 5px;
 }
 
-#standings-table tbody tr:nth-child(even) {
-  background: #f5f5f5;
-}
-
-#standings-table tbody tr:hover {
-  background: #eaeaea;
-}
-
-#matchups {
+/* Matchups Grid */
+.matchups-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 15px;
+  margin-top: 15px;
 }
-
-.matchup {
-  background: white;
-  padding: 15px;
+.matchup-card {
+  background-color: #1b2a3a;
   border-radius: 8px;
-  border: 1px solid #ddd;
+  padding: 15px;
   text-align: center;
+  transition: transform 0.2s;
+}
+.matchup-card:hover {
+  transform: translateY(-3px);
+}
+.matchup-team {
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+.matchup-score {
+  font-size: 1.3rem;
+  margin-bottom: 5px;
+  color: #1e90ff;
 }
 
-.score {
-  font-size: 20px;
-  font-weight: bold;
-  margin: 6px 0;
+/* Standings Table */
+.standings-section table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  background-color: #1b2a3a;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.standings-section th, .standings-section td {
+  padding: 10px;
+  text-align: left;
+}
+.standings-section thead {
+  background-color: #162332;
+}
+.standings-section tbody tr:hover {
+  background-color: #223348;
 }
 
-#week-select {
-  padding: 6px 10px;
+/* Dropdown */
+.week-select-container {
   margin-bottom: 15px;
 }
-
-/* League stats cards */
-
-#league-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
-  gap: 15px;
-  margin-bottom: 30px;
-}
-
-.stat-card {
-  background: white;
-  padding: 18px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  text-align: center;
-}
-
-.stat-title {
-  font-size: 13px;
-  color: #777;
-}
-
-.stat-value {
-  font-size: 20px;
-  font-weight: bold;
+.week-select-container select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  background-color: #1b2a3a;
+  color: #fff;
+  border: none;
+  font-size: 14px;
 }
 
 /* Team logos */
@@ -679,4 +698,5 @@ thead th.sort-desc::after {
   height: 28px;
   border-radius: 50%;
 }
+
 

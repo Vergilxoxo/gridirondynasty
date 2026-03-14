@@ -808,18 +808,21 @@ thead th.sort-desc::after {
 }
 
 
+/* Hero-Row */
 .champion-heroes {
   display: flex;
   justify-content: center;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 24px; /* vorher 16px, jetzt größer */
+  flex-wrap: wrap; /* damit es auf kleinen Bildschirmen umbricht */
+  margin-bottom: 25px; /* etwas mehr Abstand nach unten */
 }
 
+/* Einzelner Hero */
 .hero {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 60px;
+  width: 70px; /* etwas breiter, damit Text nicht zu gequetscht wirkt */
   text-align: center;
 }
 

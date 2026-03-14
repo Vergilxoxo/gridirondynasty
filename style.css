@@ -835,10 +835,13 @@ thead th.sort-desc::after {
   margin-bottom: 6px;
 }
 
+/* Spieler Name unter Hero-Bild */
 .hero span {
   font-size: 11px;
   color: #ccc;
   white-space: nowrap;
+  margin-top: 6px;    /* Abstand zwischen Bild und Name */
+  line-height: 1.4;   /* etwas mehr vertikaler Abstand zwischen den Textzeilen, falls Name umbricht */
 }
 
 

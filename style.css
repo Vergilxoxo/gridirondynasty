@@ -777,29 +777,6 @@ thead th.sort-desc::after {
 }
 
 /* Card Styling */
-/* Trophy Badge */
-.trophy-badge {
-  position: absolute;
-  top: -12px;
-  left: -12px;
-  width: 50px;
-  height: 50px;
-  z-index: 10;
-  animation: trophy-glow 2s infinite alternate;
-}
-
-.trophy-badge img {
-  width: 100%;
-  height: 100%;
-  transform: rotate(-10deg); /* leicht schräg für Coolness */
-}
-
-/* Glüheffekt Animation */
-@keyframes trophy-glow {
-  0% { box-shadow: 0 0 8px gold; }
-  50% { box-shadow: 0 0 16px gold; }
-  100% { box-shadow: 0 0 8px gold; }
-}
 
 /* Card selbst leicht hervorheben */
 .champion-card {

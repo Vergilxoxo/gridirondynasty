@@ -765,9 +765,7 @@ thead th.sort-desc::after {
   font-size: 14px;
 }
 
-/* ----------------------
-   Champion Trophy Card
-------------------------*/
+/* Champion Card */
 
 .champion-card {
   background: linear-gradient(145deg,#1b2a3a,#162332);
@@ -775,12 +773,7 @@ thead th.sort-desc::after {
   max-width: 420px;
   overflow: hidden;
   box-shadow: 0 8px 22px rgba(0,0,0,0.45);
-  transition: transform 0.25s;
   margin-top: 20px;
-}
-
-.champion-card:hover {
-  transform: translateY(-5px);
 }
 
 .champion-header {
@@ -789,7 +782,6 @@ thead th.sort-desc::after {
   text-align: center;
   font-weight: 700;
   color: #1e90ff;
-  letter-spacing: 1px;
 }
 
 .champion-body {
@@ -797,43 +789,18 @@ thead th.sort-desc::after {
   text-align: center;
 }
 
-.champion-team {
-  margin: 0;
-  font-size: 24px;
-}
-
-.champion-manager {
-  font-size: 14px;
-  color: #bbbbbb;
-  margin-bottom: 15px;
-}
-
-/* Heroes */
-
 .champion-heroes {
   display: flex;
   justify-content: center;
   gap: 12px;
-  margin-bottom: 18px;
-}
-
-.hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-size: 11px;
+  margin: 15px 0;
 }
 
 .hero img {
   width: 46px;
   height: 46px;
   border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #223348;
-  margin-bottom: 4px;
 }
-
-/* Stats */
 
 .champion-stats {
   display: flex;
@@ -852,4 +819,3 @@ thead th.sort-desc::after {
   font-weight: 600;
   color: #1e90ff;
 }
-

@@ -808,13 +808,13 @@ thead th.sort-desc::after {
 }
 
 
-/* Hero-Row */
+/* Hero-Container (die Reihe) */
 .champion-heroes {
   display: flex;
   justify-content: center;
-  gap: 24px; /* vorher 16px, jetzt größer */
-  flex-wrap: wrap; /* damit es auf kleinen Bildschirmen umbricht */
-  margin-bottom: 25px; /* etwas mehr Abstand nach unten */
+  gap: 30px;        /* mehr Abstand zwischen den einzelnen Spielern */
+  flex-wrap: wrap;  /* auf kleinen Bildschirmen umbrechen */
+  margin-bottom: 25px;
 }
 
 /* Einzelner Hero */
@@ -822,26 +822,26 @@ thead th.sort-desc::after {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 70px; /* etwas breiter, damit Text nicht zu gequetscht wirkt */
+  width: 80px;      /* breiter, damit der Name nicht die Nachbarn berührt */
   text-align: center;
 }
 
+/* Hero Bild */
 .hero img {
   width: 46px;
   height: 46px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #223348;
-  margin-bottom: 6px;
+  margin-bottom: 8px;   /* Abstand zum Namen */
 }
 
-/* Spieler Name unter Hero-Bild */
+/* Hero Name */
 .hero span {
-  font-size: 11px;
+  font-size: 12px;
   color: #ccc;
-  white-space: nowrap;
-  margin-top: 6px;    /* Abstand zwischen Bild und Name */
-  line-height: 1.4;   /* etwas mehr vertikaler Abstand zwischen den Textzeilen, falls Name umbricht */
+  line-height: 1.4;    /* etwas mehr Zeilenabstand */
+  word-break: break-word; /* lange Namen umbrechen */
 }
 
 

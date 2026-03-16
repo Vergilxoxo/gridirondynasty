@@ -901,7 +901,7 @@ thead th.sort-desc::after {
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 14px;   /* gleiche Größe */
   font-family: inherit;
   transition: background-color 0.2s;
 }
@@ -914,7 +914,7 @@ thead th.sort-desc::after {
 .dropdown-content {
   display: none;
   position: absolute;
-  top: 38px;
+  top: 100%;              /* statt 38px */
   left: 0;
   background-color: #1b2a3a;
   min-width: 170px;
@@ -922,6 +922,11 @@ thead th.sort-desc::after {
   box-shadow: 0 6px 18px rgba(0,0,0,0.5);
   overflow: hidden;
   z-index: 100;
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
 }
 
 /* Links */

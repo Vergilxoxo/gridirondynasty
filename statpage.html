@@ -11,7 +11,6 @@
 <body>
 
 <!-- NAVBAR -->
-
 <div class="navbar">
 <div class="navbar-container">
 
@@ -33,8 +32,9 @@
 <h1>Season Leaders</h1>
 
 <!-- FILTER -->
-
 <div class="filter-container">
+
+<input type="text" id="playerSearch" placeholder="Spieler suchen..." oninput="renderTable()">
 
 <select id="roster-select" onchange="renderTable()">
 <option value="ALL">Alle Manager</option>
@@ -69,9 +69,7 @@
 <div id="status">Lade Daten...</div>
 
 <!-- TABLE -->
-
 <table>
-
 <thead>
 <tr>
 <th>Rank</th>
@@ -81,13 +79,10 @@
 <th>Points</th>
 </tr>
 </thead>
-
 <tbody id="tableBody"></tbody>
-
 </table>
 
 <script>
-
 const leagueId="1207768406841892864";
 const seasonWeeks=18;
 
@@ -96,132 +91,94 @@ let playersData={};
 let playerRoster={};
 
 function normalizePosition(pos){
-
-if(pos==="DE" || pos==="DT") return "DL";
-if(pos==="CB" || pos==="S") return "DB";
-
-return pos;
-
+  if(pos==="DE" || pos==="DT") return "DL";
+  if(pos==="CB" || pos==="S") return "DB";
+  return pos;
 }
 
 async function loadLeaders(){
+  const status=document.getElementById("status");
+  status.innerText="Lade Spieler...";
 
-const status=document.getElementById("status");
+  playersData=await fetch("https://api.sleeper.app/v1/players/nfl").then(r=>r.json());
+  let totals={};
 
-status.innerText="Lade Spieler...";
+  for(let week=1;week<=seasonWeeks;week++){
+    status.innerText="Lade Woche "+week;
+    try{
+      const res=await fetch(`https://api.sleeper.app/v1/league/${leagueId}/matchups/${week}`);
+      if(!res.ok) continue;
+      const matchups=await res.json();
+      matchups.forEach(team=>{
+        const points=team.players_points || {};
+        for(const playerId in points){
+          if(!totals[playerId]) totals[playerId]=0;
+          totals[playerId]+=points[playerId];
+          playerRoster[playerId]=team.roster_id;
+        }
+      });
+    }catch(e){
+      console.log("Week error",week);
+    }
+  }
 
-playersData=await fetch("https://api.sleeper.app/v1/players/nfl")
-.then(r=>r.json());
+  leaderboardData=[];
+  for(const id in totals){
+    const player=playersData[id];
+    if(!player) continue;
+    leaderboardData.push({
+      name:player.full_name,
+      team:player.team || "-",
+      position:normalizePosition(player.position),
+      points:totals[id],
+      roster:playerRoster[id],
+      playerId: id
+    });
+  }
 
-let totals={};
-
-for(let week=1;week<=seasonWeeks;week++){
-
-status.innerText="Lade Woche "+week;
-
-try{
-
-const res=await fetch(`https://api.sleeper.app/v1/league/${leagueId}/matchups/${week}`);
-
-if(!res.ok) continue;
-
-const matchups=await res.json();
-
-matchups.forEach(team=>{
-
-const points=team.players_points || {};
-
-for(const playerId in points){
-
-if(!totals[playerId]) totals[playerId]=0;
-
-totals[playerId]+=points[playerId];
-
-playerRoster[playerId]=team.roster_id;
-
-}
-
-});
-
-}catch(e){
-
-console.log("Week error",week);
-
-}
-
-}
-
-leaderboardData=[];
-
-for(const id in totals){
-
-const player=playersData[id];
-
-if(!player) continue;
-
-leaderboardData.push({
-
-name:player.full_name,
-team:player.team || "-",
-position:normalizePosition(player.position),
-points:totals[id],
-roster:playerRoster[id]
-
-});
-
-}
-
-leaderboardData.sort((a,b)=>b.points-a.points);
-
-status.innerText="Fertig geladen";
-
-renderTable();
-
+  leaderboardData.sort((a,b)=>b.points-a.points);
+  status.innerText="Fertig geladen";
+  renderTable();
 }
 
 function renderTable(){
+  const posFilter=document.getElementById("positionFilter").value;
+  const rosterFilter=document.getElementById("roster-select").value;
+  const searchFilter=document.getElementById("playerSearch").value.toLowerCase();
 
-const posFilter=document.getElementById("positionFilter").value;
-const rosterFilter=document.getElementById("roster-select").value;
+  const table=document.getElementById("tableBody");
+  table.innerHTML="";
 
-const table=document.getElementById("tableBody");
+  let filtered=leaderboardData;
 
-table.innerHTML="";
+  if(posFilter!=="ALL"){
+    filtered=filtered.filter(p=>p.position===posFilter);
+  }
 
-let filtered=leaderboardData;
+  if(rosterFilter!=="ALL"){
+    filtered=filtered.filter(p=>String(p.roster)===rosterFilter);
+  }
 
-if(posFilter!=="ALL"){
+  if(searchFilter!==""){
+    filtered=filtered.filter(p=>p.name.toLowerCase().includes(searchFilter));
+  }
 
-filtered=filtered.filter(p=>p.position===posFilter);
-
-}
-
-if(rosterFilter!=="ALL"){
-
-filtered=filtered.filter(p=>String(p.roster)===rosterFilter);
-
-}
-
-filtered.slice(0,200).forEach((p,i)=>{
-
-table.innerHTML+=`
-
-<tr>
-<td data-label="Rank">${i+1}</td>
-<td data-label="Player">${p.name}</td>
-<td data-label="Team">${p.team}</td>
-<td data-label="Pos">${p.position}</td>
-<td data-label="Points">${p.points.toFixed(2)}</td>
-</tr>
-
-`;
-
-});
-
+  filtered.slice(0,200).forEach((p,i)=>{
+    table.innerHTML+=`
+      <tr>
+        <td data-label="Rank">${i+1}</td>
+        <td data-label="Player">
+          <a href="player.html?id=${p.playerId}" target="_blank">${p.name}</a>
+        </td>
+        <td data-label="Team">${p.team}</td>
+        <td data-label="Pos">${p.position}</td>
+        <td data-label="Points">${p.points.toFixed(2)}</td>
+      </tr>
+    `;
+  });
 }
 
 window.onload=loadLeaders;
-
 </script>
 
 </body>

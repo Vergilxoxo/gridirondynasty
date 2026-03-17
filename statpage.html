@@ -2,25 +2,38 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Sleeper Top Spieler</title>
+<title>Sleeper Season Leaders</title>
 
 <style>
+
 body{
 font-family:Arial;
-background:#f4f6f8;
-padding:20px;
+background:#f5f6fa;
+padding:30px;
+}
+
+h1{
+margin-bottom:20px;
+}
+
+.controls{
+margin-bottom:20px;
+}
+
+select,button{
+padding:8px;
+margin-right:10px;
 }
 
 table{
 border-collapse:collapse;
-width:600px;
+width:800px;
 background:white;
 }
 
 th,td{
 padding:8px;
 border:1px solid #ddd;
-text-align:left;
 }
 
 th{
@@ -33,76 +46,127 @@ color:white;
 
 <body>
 
-<h2>Top Spieler Saison</h2>
+<h1>Sleeper Season Leaders</h1>
 
-<button onclick="loadSeason()">Spieler laden</button>
+<div class="controls">
+
+Season:
+<select id="season">
+<option>2023</option>
+<option>2022</option>
+<option>2021</option>
+</select>
+
+Position:
+<select id="position">
+<option value="ALL">Alle</option>
+<option value="QB">QB</option>
+<option value="RB">RB</option>
+<option value="WR">WR</option>
+<option value="TE">TE</option>
+<option value="K">K</option>
+<option value="LB">LB</option>
+<option value="DB">DB</option>
+<option value="DL">DL</option>
+</select>
+
+<button onclick="loadSeason()">Stats laden</button>
+
+</div>
 
 <table>
+
 <thead>
 <tr>
 <th>Rank</th>
 <th>Name</th>
+<th>Team</th>
 <th>Position</th>
 <th>Punkte</th>
 </tr>
 </thead>
+
 <tbody id="tableBody"></tbody>
+
 </table>
 
 <script>
 
 async function loadSeason(){
 
-const season = 2023;
-const weeks = 18;
+const season=document.getElementById("season").value;
+const positionFilter=document.getElementById("position").value;
 
-const players = await fetch("https://api.sleeper.app/v1/players/nfl")
+const weeks=18;
+
+const players=await fetch("https://api.sleeper.app/v1/players/nfl")
 .then(r=>r.json());
 
-let totals = {};
+let totals={};
 
-for(let week=1; week<=weeks; week++){
+let requests=[];
 
-console.log("lade Woche",week);
+for(let week=1;week<=weeks;week++){
 
-const stats = await fetch(`https://api.sleeper.app/v1/stats/nfl/${season}/${week}`)
-.then(r=>r.json());
+requests.push(
+fetch(`https://api.sleeper.app/v1/stats/nfl/${season}/${week}`)
+.then(r=>r.json())
+);
 
-for(const id in stats){
-
-const pts = stats[id].pts_ppr || stats[id].pts_std || 0;
-
-if(!totals[id]){
-totals[id]=0;
 }
+
+const allWeeks=await Promise.all(requests);
+
+allWeeks.forEach(weekStats=>{
+
+for(const id in weekStats){
+
+const stat=weekStats[id];
+
+const pts=
+stat.fantasy_points ||
+stat.pts_ppr ||
+stat.pts_half_ppr ||
+stat.pts_std ||
+0;
+
+if(!totals[id]) totals[id]=0;
 
 totals[id]+=pts;
 
 }
 
-}
+});
 
-let result=[];
+let results=[];
 
 for(const id in totals){
 
-if(!players[id]) continue;
+if(totals[id]<=0) continue;
 
-result.push({
+const player=players[id];
 
-name:players[id].full_name,
-position:players[id].position,
+if(!player) continue;
+
+if(positionFilter!=="ALL" && player.position!==positionFilter) continue;
+
+results.push({
+
+name:player.full_name,
+team:player.team || "-",
+position:player.position,
 points:totals[id]
 
 });
 
 }
 
-result.sort((a,b)=>b.points-a.points);
+results.sort((a,b)=>b.points-a.points);
 
-const top = result.slice(0,50);
+const top=results.slice(0,200);
 
 const table=document.getElementById("tableBody");
+
 table.innerHTML="";
 
 top.forEach((p,i)=>{
@@ -111,6 +175,7 @@ table.innerHTML+=`
 <tr>
 <td>${i+1}</td>
 <td>${p.name}</td>
+<td>${p.team}</td>
 <td>${p.position}</td>
 <td>${p.points.toFixed(2)}</td>
 </tr>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Sleeper Top Spieler</title>
+
+<style>
+body{
+font-family:Arial;
+background:#f4f6f8;
+padding:20px;
+}
+
+table{
+border-collapse:collapse;
+width:600px;
+background:white;
+}
+
+th,td{
+padding:8px;
+border:1px solid #ddd;
+text-align:left;
+}
+
+th{
+background:#222;
+color:white;
+}
+
+</style>
+</head>
+
+<body>
+
+<h2>Top Spieler Saison</h2>
+
+<button onclick="loadSeason()">Spieler laden</button>
+
+<table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>Name</th>
+<th>Position</th>
+<th>Punkte</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+
+<script>
+
+async function loadSeason(){
+
+const season = 2023;
+const weeks = 18;
+
+const players = await fetch("https://api.sleeper.app/v1/players/nfl")
+.then(r=>r.json());
+
+let totals = {};
+
+for(let week=1; week<=weeks; week++){
+
+console.log("lade Woche",week);
+
+const stats = await fetch(`https://api.sleeper.app/v1/stats/nfl/${season}/${week}`)
+.then(r=>r.json());
+
+for(const id in stats){
+
+const pts = stats[id].pts_ppr || stats[id].pts_std || 0;
+
+if(!totals[id]){
+totals[id]=0;
+}
+
+totals[id]+=pts;
+
+}
+
+}
+
+let result=[];
+
+for(const id in totals){
+
+if(!players[id]) continue;
+
+result.push({
+
+name:players[id].full_name,
+position:players[id].position,
+points:totals[id]
+
+});
+
+}
+
+result.sort((a,b)=>b.points-a.points);
+
+const top = result.slice(0,50);
+
+const table=document.getElementById("tableBody");
+table.innerHTML="";
+
+top.forEach((p,i)=>{
+
+table.innerHTML+=`
+<tr>
+<td>${i+1}</td>
+<td>${p.name}</td>
+<td>${p.position}</td>
+<td>${p.points.toFixed(2)}</td>
+</tr>
+`;
+
+});
+
+}
+
+</script>
+
+</body>
+</html>

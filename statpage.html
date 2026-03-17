@@ -94,6 +94,9 @@ Position:
 
 async function loadSeason(){
 
+console.clear();
+console.log("Start loading season");
+
 const season=document.getElementById("season").value;
 const positionFilter=document.getElementById("position").value;
 
@@ -102,26 +105,28 @@ const weeks=18;
 const players=await fetch("https://api.sleeper.app/v1/players/nfl")
 .then(r=>r.json());
 
-let totals={};
+console.log("Players loaded");
 
-let requests=[];
+let totals={};
 
 for(let week=1;week<=weeks;week++){
 
-requests.push(
-fetch(`https://api.sleeper.app/v1/stats/nfl/${season}/${week}`)
-.then(r=>r.json())
-);
+try{
 
+console.log("Loading week",week);
+
+const res=await fetch(`https://api.sleeper.app/v1/stats/nfl/${season}/${week}`);
+
+if(!res.ok){
+console.log("Week skipped:",week);
+continue;
 }
 
-const allWeeks=await Promise.all(requests);
+const stats=await res.json();
 
-allWeeks.forEach(weekStats=>{
+for(const id in stats){
 
-for(const id in weekStats){
-
-const stat=weekStats[id];
+const stat=stats[id];
 
 const pts=
 stat.fantasy_points ||
@@ -136,7 +141,13 @@ totals[id]+=pts;
 
 }
 
-});
+}catch(e){
+
+console.log("Error week",week,e);
+
+}
+
+}
 
 let results=[];
 
@@ -163,13 +174,10 @@ points:totals[id]
 
 results.sort((a,b)=>b.points-a.points);
 
-const top=results.slice(0,200);
-
 const table=document.getElementById("tableBody");
-
 table.innerHTML="";
 
-top.forEach((p,i)=>{
+results.slice(0,200).forEach((p,i)=>{
 
 table.innerHTML+=`
 <tr>
@@ -182,6 +190,8 @@ table.innerHTML+=`
 `;
 
 });
+
+console.log("Finished loading");
 
 }
 

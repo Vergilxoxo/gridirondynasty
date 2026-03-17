@@ -12,9 +12,12 @@ background:#f4f6f8;
 padding:30px;
 }
 
-button{
-padding:8px 12px;
+.controls{
 margin-bottom:15px;
+}
+
+select{
+padding:6px;
 }
 
 table{
@@ -40,9 +43,24 @@ color:white;
 
 <h1>Top Spieler meiner Sleeper Liga</h1>
 
-<button onclick="loadLeaders()">Leaderboard laden</button>
+<div class="controls">
 
-<div id="status"></div>
+Position:
+<select id="positionFilter" onchange="renderTable()">
+<option value="ALL">Alle</option>
+<option value="QB">QB</option>
+<option value="RB">RB</option>
+<option value="WR">WR</option>
+<option value="TE">TE</option>
+<option value="K">K</option>
+<option value="DL">DL</option>
+<option value="LB">LB</option>
+<option value="DB">DB</option>
+</select>
+
+</div>
+
+<div id="status">Lade Daten...</div>
 
 <table>
 
@@ -65,12 +83,16 @@ color:white;
 const leagueId="1207768406841892864";
 const seasonWeeks=18;
 
+let leaderboardData=[];
+let playersData={};
+
 async function loadLeaders(){
 
 const status=document.getElementById("status");
-status.innerText="Lade Spieler...";
 
-const players=await fetch("https://api.sleeper.app/v1/players/nfl")
+status.innerText="Lade Spielerdaten...";
+
+playersData=await fetch("https://api.sleeper.app/v1/players/nfl")
 .then(r=>r.json());
 
 let totals={};
@@ -109,17 +131,15 @@ console.log("Fehler Woche",week);
 
 }
 
-status.innerText="Berechne Ranking...";
-
-let list=[];
+leaderboardData=[];
 
 for(const id in totals){
 
-const player=players[id];
+const player=playersData[id];
 
 if(!player) continue;
 
-list.push({
+leaderboardData.push({
 
 name:player.full_name,
 team:player.team || "-",
@@ -130,12 +150,31 @@ points:totals[id]
 
 }
 
-list.sort((a,b)=>b.points-a.points);
+leaderboardData.sort((a,b)=>b.points-a.points);
+
+status.innerText="Fertig geladen";
+
+renderTable();
+
+}
+
+function renderTable(){
+
+const filter=document.getElementById("positionFilter").value;
 
 const table=document.getElementById("tableBody");
+
 table.innerHTML="";
 
-list.slice(0,200).forEach((p,i)=>{
+let filtered=leaderboardData;
+
+if(filter!=="ALL"){
+
+filtered=leaderboardData.filter(p=>p.position===filter);
+
+}
+
+filtered.slice(0,200).forEach((p,i)=>{
 
 table.innerHTML+=`
 <tr>
@@ -149,9 +188,9 @@ table.innerHTML+=`
 
 });
 
-status.innerText="Fertig!";
-
 }
+
+window.onload=loadLeaders;
 
 </script>
 

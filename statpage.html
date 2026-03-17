@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Sleeper Season Leaders</title>
+<title>Sleeper Liga Leaderboard</title>
 
 <style>
 
@@ -12,14 +12,9 @@ background:#f4f6f8;
 padding:30px;
 }
 
-button,select{
-padding:8px;
-margin-right:10px;
-}
-
-#status{
-margin:10px 0;
-font-weight:bold;
+button{
+padding:8px 12px;
+margin-bottom:15px;
 }
 
 table{
@@ -39,34 +34,13 @@ color:white;
 }
 
 </style>
-
 </head>
 
 <body>
 
-<h1>Sleeper Season Leaderboard</h1>
+<h1>Top Spieler meiner Sleeper Liga</h1>
 
-Season:
-<select id="season">
-<option value="2023">2023</option>
-<option value="2022">2022</option>
-<option value="2021">2021</option>
-</select>
-
-Position:
-<select id="position">
-<option value="ALL">Alle</option>
-<option>QB</option>
-<option>RB</option>
-<option>WR</option>
-<option>TE</option>
-<option>K</option>
-<option>LB</option>
-<option>DB</option>
-<option>DL</option>
-</select>
-
-<button onclick="loadSeason()">Stats laden</button>
+<button onclick="loadLeaders()">Leaderboard laden</button>
 
 <div id="status"></div>
 
@@ -88,57 +62,54 @@ Position:
 
 <script>
 
-async function loadSeason(){
+const leagueId="1207768406841892864";
+const seasonWeeks=18;
 
-const season=document.getElementById("season").value;
-const posFilter=document.getElementById("position").value;
+async function loadLeaders(){
+
 const status=document.getElementById("status");
-
 status.innerText="Lade Spieler...";
 
 const players=await fetch("https://api.sleeper.app/v1/players/nfl")
 .then(r=>r.json());
 
-status.innerText="Lade Wochenstats...";
-
 let totals={};
 
-for(let week=1;week<=18;week++){
+for(let week=1;week<=seasonWeeks;week++){
 
 status.innerText="Lade Woche "+week;
 
 try{
 
-const res=await fetch(`https://api.sleeper.app/v1/stats/nfl/${season}/${week}`);
+const res=await fetch(`https://api.sleeper.app/v1/league/${leagueId}/matchups/${week}`);
 
 if(!res.ok) continue;
 
-const stats=await res.json();
+const matchups=await res.json();
 
-for(const id in stats){
+matchups.forEach(team=>{
 
-const stat=stats[id];
+const points=team.players_points || {};
 
-const pts =
-stat.fantasy_points ??
-stat.pts_ppr ??
-stat.pts_half_ppr ??
-stat.pts_std ??
-0;
+for(const playerId in points){
 
-if(!totals[id]) totals[id]=0;
+if(!totals[playerId]) totals[playerId]=0;
 
-totals[id]+=pts;
+totals[playerId]+=points[playerId];
 
 }
+
+});
 
 }catch(e){
-console.log("Week error",week);
-}
+
+console.log("Fehler Woche",week);
 
 }
 
-status.innerText="Baue Tabelle...";
+}
+
+status.innerText="Berechne Ranking...";
 
 let list=[];
 
@@ -147,8 +118,6 @@ for(const id in totals){
 const player=players[id];
 
 if(!player) continue;
-
-if(posFilter!=="ALL" && player.position!==posFilter) continue;
 
 list.push({
 
@@ -180,7 +149,7 @@ table.innerHTML+=`
 
 });
 
-status.innerText="Fertig! "+list.length+" Spieler gefunden";
+status.innerText="Fertig!";
 
 }
 

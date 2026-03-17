@@ -13,16 +13,17 @@ padding:30px;
 }
 
 .controls{
-margin-bottom:15px;
+margin-bottom:20px;
 }
 
 select{
 padding:6px;
+margin-right:10px;
 }
 
 table{
 border-collapse:collapse;
-width:900px;
+width:950px;
 background:white;
 }
 
@@ -45,6 +46,23 @@ color:white;
 <h1>Top Spieler meiner Sleeper Liga</h1>
 
 <div class="controls">
+
+Roster:
+<select id="rosterFilter" onchange="renderTable()">
+<option value="ALL">Alle</option>
+<option value="1">Ralf</option>
+<option value="2">TitleTownPat</option>
+<option value="3">MrNilsson</option>
+<option value="4">kleinerlouis</option>
+<option value="5">Ulle</option>
+<option value="6">TST1860</option>
+<option value="7">brab97</option>
+<option value="8">Himp84</option>
+<option value="9">TobiWalonso</option>
+<option value="10">49erflo</option>
+<option value="11">Heesy</option>
+<option value="12">CrazyGringo</option>
+</select>
 
 Position:
 <select id="positionFilter" onchange="renderTable()">
@@ -69,7 +87,7 @@ Position:
 <tr>
 <th>Rank</th>
 <th>Name</th>
-<th>Team</th>
+<th>NFL Team</th>
 <th>Position</th>
 <th>Punkte</th>
 </tr>
@@ -86,6 +104,7 @@ const seasonWeeks=18;
 
 let leaderboardData=[];
 let playersData={};
+let playerRoster={};
 
 function normalizePosition(pos){
 
@@ -130,6 +149,8 @@ if(!totals[playerId]) totals[playerId]=0;
 
 totals[playerId]+=points[playerId];
 
+playerRoster[playerId]=team.roster_id;
+
 }
 
 });
@@ -155,7 +176,8 @@ leaderboardData.push({
 name:player.full_name,
 team:player.team || "-",
 position:normalizePosition(player.position),
-points:totals[id]
+points:totals[id],
+roster:playerRoster[id] || null
 
 });
 
@@ -171,7 +193,8 @@ renderTable();
 
 function renderTable(){
 
-const filter=document.getElementById("positionFilter").value;
+const posFilter=document.getElementById("positionFilter").value;
+const rosterFilter=document.getElementById("rosterFilter").value;
 
 const table=document.getElementById("tableBody");
 
@@ -179,9 +202,15 @@ table.innerHTML="";
 
 let filtered=leaderboardData;
 
-if(filter!=="ALL"){
+if(posFilter!=="ALL"){
 
-filtered=leaderboardData.filter(p=>p.position===filter);
+filtered=filtered.filter(p=>p.position===posFilter);
+
+}
+
+if(rosterFilter!=="ALL"){
+
+filtered=filtered.filter(p=>String(p.roster)===rosterFilter);
 
 }
 

@@ -2,54 +2,42 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Sleeper Liga Leaderboard</title>
+<title>Season Leaders</title>
 
-<style>
-
-body{
-font-family:Arial;
-background:#f4f6f8;
-padding:30px;
-}
-
-.controls{
-margin-bottom:20px;
-}
-
-select{
-padding:6px;
-margin-right:10px;
-}
-
-table{
-border-collapse:collapse;
-width:950px;
-background:white;
-}
-
-th,td{
-border:1px solid #ddd;
-padding:8px;
-}
-
-th{
-background:#222;
-color:white;
-}
-
-</style>
+<link rel="stylesheet" href="style.css">
 
 </head>
 
 <body>
 
-<h1>Top Spieler meiner Sleeper Liga</h1>
+<!-- NAVBAR -->
 
-<div class="controls">
+<div class="navbar">
+<div class="navbar-container">
 
-Roster:
-<select id="rosterFilter" onchange="renderTable()">
-<option value="ALL">Alle</option>
+<a href="index.html">Home</a>
+<a href="players.html">Players</a>
+<a href="leaders.html">Leaders</a>
+
+<div class="dropdown">
+<button class="dropbtn">League</button>
+<div class="dropdown-content">
+<a href="standings.html">Standings</a>
+<a href="matchups.html">Matchups</a>
+</div>
+</div>
+
+</div>
+</div>
+
+<h1>Season Leaders</h1>
+
+<!-- FILTER -->
+
+<div class="filter-container">
+
+<select id="roster-select" onchange="renderTable()">
+<option value="ALL">Alle Manager</option>
 <option value="1">Ralf</option>
 <option value="2">TitleTownPat</option>
 <option value="3">MrNilsson</option>
@@ -64,9 +52,8 @@ Roster:
 <option value="12">CrazyGringo</option>
 </select>
 
-Position:
 <select id="positionFilter" onchange="renderTable()">
-<option value="ALL">Alle</option>
+<option value="ALL">Alle Positionen</option>
 <option value="QB">QB</option>
 <option value="RB">RB</option>
 <option value="WR">WR</option>
@@ -81,15 +68,17 @@ Position:
 
 <div id="status">Lade Daten...</div>
 
+<!-- TABLE -->
+
 <table>
 
 <thead>
 <tr>
 <th>Rank</th>
-<th>Name</th>
-<th>NFL Team</th>
-<th>Position</th>
-<th>Punkte</th>
+<th>Player</th>
+<th>Team</th>
+<th>Pos</th>
+<th>Points</th>
 </tr>
 </thead>
 
@@ -109,7 +98,6 @@ let playerRoster={};
 function normalizePosition(pos){
 
 if(pos==="DE" || pos==="DT") return "DL";
-
 if(pos==="CB" || pos==="S") return "DB";
 
 return pos;
@@ -120,7 +108,7 @@ async function loadLeaders(){
 
 const status=document.getElementById("status");
 
-status.innerText="Lade Spielerdaten...";
+status.innerText="Lade Spieler...";
 
 playersData=await fetch("https://api.sleeper.app/v1/players/nfl")
 .then(r=>r.json());
@@ -157,7 +145,7 @@ playerRoster[playerId]=team.roster_id;
 
 }catch(e){
 
-console.log("Fehler Woche",week);
+console.log("Week error",week);
 
 }
 
@@ -177,7 +165,7 @@ name:player.full_name,
 team:player.team || "-",
 position:normalizePosition(player.position),
 points:totals[id],
-roster:playerRoster[id] || null
+roster:playerRoster[id]
 
 });
 
@@ -194,7 +182,7 @@ renderTable();
 function renderTable(){
 
 const posFilter=document.getElementById("positionFilter").value;
-const rosterFilter=document.getElementById("rosterFilter").value;
+const rosterFilter=document.getElementById("roster-select").value;
 
 const table=document.getElementById("tableBody");
 
@@ -217,13 +205,15 @@ filtered=filtered.filter(p=>String(p.roster)===rosterFilter);
 filtered.slice(0,200).forEach((p,i)=>{
 
 table.innerHTML+=`
+
 <tr>
-<td>${i+1}</td>
-<td>${p.name}</td>
-<td>${p.team}</td>
-<td>${p.position}</td>
-<td>${p.points.toFixed(2)}</td>
+<td data-label="Rank">${i+1}</td>
+<td data-label="Player">${p.name}</td>
+<td data-label="Team">${p.team}</td>
+<td data-label="Pos">${p.position}</td>
+<td data-label="Points">${p.points.toFixed(2)}</td>
 </tr>
+
 `;
 
 });

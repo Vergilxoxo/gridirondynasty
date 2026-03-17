@@ -1,115 +1,238 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <title>Roster Viewer</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Sleeper Liga Leaderboard</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f4f6f8;
+padding:30px;
+}
+
+.controls{
+margin-bottom:20px;
+}
+
+select{
+padding:6px;
+margin-right:10px;
+}
+
+table{
+border-collapse:collapse;
+width:950px;
+background:white;
+}
+
+th,td{
+border:1px solid #ddd;
+padding:8px;
+}
+
+th{
+background:#222;
+color:white;
+}
+
+</style>
+
 </head>
+
 <body>
 
- <!-- Navigation -->
-  <nav class="navbar">
-  <div class="navbar-container">
-    <a href="index.html" class="nav-logo">Dashboard</a>
-    <a href="roster.html" class="nav-link">Roster</a>
-    <a href="undrafted-taxi.html" class="nav-link">UDFA</a>
-    <a href="players.html" class="nav-link">Spielerliste</a>
+<h1>Top Spieler meiner Sleeper Liga</h1>
 
-    <!-- Dropdown -->
-    <div class="dropdown">
-      <button class="dropbtn">League ▾</button>
-      <div class="dropdown-content">
-        <a href="transactions.html">Transactions</a>
-        <a href="hof.html">Hall of Fame</a>
-      </div>
-    </div>
+<div class="controls">
 
-    <a href="salary.html" class="nav-link">Salary</a>
-    <a href="rulebook.html" class="nav-link">Regelwerk</a>
-  </div>
-</nav>
+Roster:
+<select id="rosterFilter" onchange="renderTable()">
+<option value="ALL">Alle</option>
+<option value="1">Ralf</option>
+<option value="2">TitleTownPat</option>
+<option value="3">MrNilsson</option>
+<option value="4">kleinerlouis</option>
+<option value="5">Ulle</option>
+<option value="6">TST1860</option>
+<option value="7">brab97</option>
+<option value="8">Himp84</option>
+<option value="9">TobiWalonso</option>
+<option value="10">49erflo</option>
+<option value="11">Heesy</option>
+<option value="12">CrazyGringo</option>
+</select>
 
-<h1>Roster Viewer</h1>
+Position:
+<select id="positionFilter" onchange="renderTable()">
+<option value="ALL">Alle</option>
+<option value="QB">QB</option>
+<option value="RB">RB</option>
+<option value="WR">WR</option>
+<option value="TE">TE</option>
+<option value="K">K</option>
+<option value="DL">DL</option>
+<option value="LB">LB</option>
+<option value="DB">DB</option>
+</select>
 
-<!-- Roster Auswahl -->
-<!-- Roster Auswahl -->
-<div class="filter-container roster-filter">
-  <label for="roster-select">Roster:</label>
-  <select id="roster-select">
-    <option value="1">Ralf</option>
-    <option value="2">TitleTownPat</option>
-    <option value="3">MrNilsson</option>
-    <option value="4">kleinerlouis</option>
-    <option value="5">Ulle</option>
-    <option value="6">TST1860</option>
-    <option value="7">brab97</option>
-    <option value="8">Himp84</option>
-    <option value="9">TobiWalonso</option>
-    <option value="10">49erflo</option>
-    <option value="11">Heesy</option>
-    <option value="12">CrazyGringo</option>
-  </select>
 </div>
 
-<!-- Filter -->
-<div class="filter-container">
-  <input type="text" id="name-filter" placeholder="Name filtern…">
-  <select id="position-filter">
-    <option value="">Alle Positionen</option>
-  </select>
-</div>
+<div id="status">Lade Daten...</div>
 
-<!-- Sichtbarkeit -->
-<div class="filter-container">
-  <label><input type="checkbox" id="toggle-active" checked> Active</label>
-  <label><input type="checkbox" id="toggle-taxi" checked> Taxi</label>
-  <label><input type="checkbox" id="toggle-ir" checked> IR / Reserve</label>
-</div>
+<table>
 
-<!-- Active -->
-<div class="roster-section" id="section-active">
-  <h2>Active Roster</h2>
-  <table id="active-roster">
-    <thead><tr id="active-roster-header"></tr></thead>
-    <tbody></tbody>
-  </table>
-</div>
+<thead>
+<tr>
+<th>Rank</th>
+<th>Name</th>
+<th>NFL Team</th>
+<th>Position</th>
+<th>Punkte</th>
+</tr>
+</thead>
 
-<!-- Taxi -->
-<div class="roster-section" id="section-taxi">
-  <h2>Taxi Squad</h2>
-  <table id="taxi-roster">
-    <thead><tr id="taxi-roster-header"></tr></thead>
-    <tbody></tbody>
-  </table>
-</div>
+<tbody id="tableBody"></tbody>
 
-<!-- IR -->
-<div class="roster-section" id="section-ir">
-  <h2>IR / Reserve</h2>
-  <table id="ir-roster">
-    <thead><tr id="ir-roster-header"></tr></thead>
-    <tbody></tbody>
-  </table>
-</div>
+</table>
 
-<!-- Dead Cap -->
-<div class="roster-section" id="section-deadcap">
-  <h2>Dead Cap</h2>
-  <table id="deadcap-table">
-    <thead>
-      <tr id="deadcap-header"></tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
+<script>
 
-<script src="ralf.js"></script>
+const leagueId="1207768406841892864";
+const seasonWeeks=18;
+
+let leaderboardData=[];
+let playersData={};
+let playerRoster={};
+
+function normalizePosition(pos){
+
+if(pos==="DE" || pos==="DT") return "DL";
+
+if(pos==="CB" || pos==="S") return "DB";
+
+return pos;
+
+}
+
+async function loadLeaders(){
+
+const status=document.getElementById("status");
+
+status.innerText="Lade Spielerdaten...";
+
+playersData=await fetch("https://api.sleeper.app/v1/players/nfl")
+.then(r=>r.json());
+
+let totals={};
+
+for(let week=1;week<=seasonWeeks;week++){
+
+status.innerText="Lade Woche "+week;
+
+try{
+
+const res=await fetch(`https://api.sleeper.app/v1/league/${leagueId}/matchups/${week}`);
+
+if(!res.ok) continue;
+
+const matchups=await res.json();
+
+matchups.forEach(team=>{
+
+const points=team.players_points || {};
+
+for(const playerId in points){
+
+if(!totals[playerId]) totals[playerId]=0;
+
+totals[playerId]+=points[playerId];
+
+playerRoster[playerId]=team.roster_id;
+
+}
+
+});
+
+}catch(e){
+
+console.log("Fehler Woche",week);
+
+}
+
+}
+
+leaderboardData=[];
+
+for(const id in totals){
+
+const player=playersData[id];
+
+if(!player) continue;
+
+leaderboardData.push({
+
+name:player.full_name,
+team:player.team || "-",
+position:normalizePosition(player.position),
+points:totals[id],
+roster:playerRoster[id] || null
+
+});
+
+}
+
+leaderboardData.sort((a,b)=>b.points-a.points);
+
+status.innerText="Fertig geladen";
+
+renderTable();
+
+}
+
+function renderTable(){
+
+const posFilter=document.getElementById("positionFilter").value;
+const rosterFilter=document.getElementById("rosterFilter").value;
+
+const table=document.getElementById("tableBody");
+
+table.innerHTML="";
+
+let filtered=leaderboardData;
+
+if(posFilter!=="ALL"){
+
+filtered=filtered.filter(p=>p.position===posFilter);
+
+}
+
+if(rosterFilter!=="ALL"){
+
+filtered=filtered.filter(p=>String(p.roster)===rosterFilter);
+
+}
+
+filtered.slice(0,200).forEach((p,i)=>{
+
+table.innerHTML+=`
+<tr>
+<td>${i+1}</td>
+<td>${p.name}</td>
+<td>${p.team}</td>
+<td>${p.position}</td>
+<td>${p.points.toFixed(2)}</td>
+</tr>
+`;
+
+});
+
+}
+
+window.onload=loadLeaders;
+
+</script>
+
 </body>
 </html>
-
-
-
-
-
-

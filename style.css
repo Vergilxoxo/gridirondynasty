@@ -947,3 +947,38 @@ thead th.sort-desc::after {
 .dropdown:hover .dropdown-content {
   display: block;
 }
+
+
+/* Checkboxen in Tabellenzeilen */
+table td input.player-checkbox {
+  margin-right: 5px;
+}
+
+/* Optional: Spalte für Checkbox fixieren */
+table th:first-child, table td:first-child {
+  width: 30px;
+  text-align: center;
+}
+
+/* Salary Block optisch abheben */
+#salary-cap-block {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-top: 15px;
+  background-color: #f9f9f9;
+}
+
+#salary-cap-block table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#salary-cap-block th, #salary-cap-block td {
+  border: 1px solid #ddd;
+  padding: 5px;
+  text-align: center;
+}
+
+#salary-cap-block th {
+  background-color: #eee;
+}

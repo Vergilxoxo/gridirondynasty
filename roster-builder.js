@@ -1,166 +1,281 @@
-const leagueId = "1311998228123643904"
+const leagueId = "1311998228123643904";
 
-let sheetData=[]
-let sleeperData={}
-let activePlayers=[]
-let irPlayers=[]
+let builderState = {};
 
-async function fetchSheetPlayers(){
+// ----------------------------
+// Daten laden
+// ----------------------------
 
-const res=await fetch("https://opensheet.elk.sh/1TmZedqXNrEZ-LtPxma7AemFsKOoHErFgZhjIOK3C0hc/Sheet1")
-return await res.json()
+async function fetchSheetPlayers() {
+  const res = await fetch("https://opensheet.elk.sh/1TmZedqXNrEZ-LtPxma7AemFsKOoHErFgZhjIOK3C0hc/Sheet1");
+  return await res.json();
+}
+
+async function fetchCutSheet() {
+  const res = await fetch("https://opensheet.elk.sh/1TmZedqXNrEZ-LtPxma7AemFsKOoHErFgZhjIOK3C0hc/CutSheet");
+  return await res.json();
+}
+
+async function fetchSleeperPlayers() {
+  const res = await fetch("https://api.sleeper.app/v1/players/nfl");
+  return await res.json();
+}
+
+// ----------------------------
+// Seite laden
+// ----------------------------
+
+async function loadRosterPage(rosterId) {
+
+  const sheetData = await fetchSheetPlayers();
+  const sleeperData = await fetchSleeperPlayers();
+  const cutSheetData = await fetchCutSheet();
+
+  const rosterRes = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/rosters`);
+  const rosters = await rosterRes.json();
+  const roster = rosters.find(r => r.roster_id == rosterId);
+  if (!roster) return;
+
+  const rosterName = document.getElementById("roster-select").selectedOptions[0].textContent;
+
+  const allIds = (roster.players || []).map(String);
+  const taxiIds = (roster.taxi || []).map(String);
+  const irIds = (roster.reserve || []).map(String);
+  const activeIds = allIds.filter(id => !taxiIds.includes(id) && !irIds.includes(id));
+
+  const yearCols = Array.from(
+    new Set(sheetData.flatMap(p => Object.keys(p).filter(k => /^\d{4}$/.test(k))))
+  ).sort();
+
+  const fixedCols = ["Builder","Player ID","Name","Position","NFL Team","Contract"];
+
+  ["active-roster","taxi-roster","ir-roster"].forEach(tableId => {
+
+    const row = document.getElementById(`${tableId}-header`);
+    row.innerHTML = "";
+
+    fixedCols.forEach(c=>{
+      const th = document.createElement("th");
+      th.textContent = c;
+      row.appendChild(th);
+    });
+
+    yearCols.forEach(y=>{
+      const th = document.createElement("th");
+      th.textContent = y;
+      row.appendChild(th);
+    });
+
+  });
+
+  function mapPlayer(id) {
+
+    const sleeper = Object.values(sleeperData).find(p => String(p.player_id) === id) || {};
+    const sheet = sheetData.find(p => String(p["Player ID"]) === id) || {};
+
+    return { ...sheet, ...sleeper };
+
+  }
+
+  function renderTable(tableId, ids) {
+
+    const tbody = document.querySelector(`#${tableId} tbody`);
+    tbody.innerHTML = "";
+
+    ids.map(mapPlayer).forEach(p => {
+
+      const tr = document.createElement("tr");
+      const pos = p.position || "-";
+      const playerId = p.player_id || p["Player ID"] || "-";
+
+      let html = `
+      <td>
+      <input type="checkbox"
+      class="builder-check"
+      data-id="${playerId}"
+      data-pos="${pos}"
+      data-contract="${p.Contract || "0"}">
+      </td>
+
+      <td>${playerId}</td>
+      <td>${p.full_name || "-"}</td>
+      <td class="pos-${pos}">${pos}</td>
+      <td>${p.team || "-"}</td>
+      <td>${p.Contract || "-"}</td>
+      `;
+
+      yearCols.forEach(y => html += `<td>${p[y] || "-"}</td>`);
+
+      tr.innerHTML = html;
+      tbody.appendChild(tr);
+
+    });
+
+  }
+
+  renderTable("active-roster",activeIds);
+  renderTable("taxi-roster",taxiIds);
+  renderTable("ir-roster",irIds);
+
+  renderDeadCapTable(cutSheetData,rosterName);
+
+  renderSalaryCapBlock(sheetData,cutSheetData,rosterName,yearCols,activeIds,irIds);
 
 }
 
-async function fetchSleeperPlayers(){
+// ----------------------------
+// Builder Summary
+// ----------------------------
 
-const res=await fetch("https://api.sleeper.app/v1/players/nfl")
-return await res.json()
+function updateBuilderSummary(){
 
-}
+  const players = Object.values(builderState);
 
-async function loadRoster(rosterId){
+  const count = players.length;
 
-sheetData=await fetchSheetPlayers()
-sleeperData=await fetchSleeperPlayers()
+  let removedSalary = 0;
+  const positions = {};
 
-const rosterRes=await fetch(`https://api.sleeper.app/v1/league/${leagueId}/rosters`)
-const rosters=await rosterRes.json()
+  players.forEach(p=>{
 
-const roster=rosters.find(r=>r.roster_id==rosterId)
+    removedSalary += parseValue(p.contract);
 
-const taxiIds=(roster.taxi||[]).map(String)
-const irIds=(roster.reserve||[]).map(String)
-const allIds=(roster.players||[]).map(String)
+    const pos = p.pos || "-";
+    positions[pos] = (positions[pos] || 0) + 1;
 
-const activeIds=allIds.filter(id=>!taxiIds.includes(id)&&!irIds.includes(id))
+  });
 
-activePlayers=activeIds.map(mapPlayer)
-irPlayers=irIds.map(mapPlayer)
+  document.getElementById("builder-count").textContent = count;
 
-renderTable("active-roster",activePlayers)
-renderTable("taxi-roster",taxiIds.map(mapPlayer))
-renderTable("ir-roster",irPlayers)
+  document.getElementById("builder-salary").textContent =
+  "$"+removedSalary.toLocaleString("de-DE");
 
-updateSalaryBlock()
+  const posText = Object.entries(positions)
+  .map(([p,c])=>`${p}:${c}`)
+  .join(" | ");
 
-}
-
-function mapPlayer(id){
-
-const sleeper=sleeperData[id]||{}
-const sheet=sheetData.find(p=>String(p["Player ID"])===id)||{}
-
-return{
-
-id,
-name:sleeper.full_name||"-",
-pos:sleeper.position||"-",
-team:sleeper.team||"-",
-contract:sheet.Contract||"$0"
+  document.getElementById("builder-positions").textContent =
+  posText || "-";
 
 }
 
-}
+// ----------------------------
+// Salary neu berechnen
+// ----------------------------
 
-function renderTable(tableId,players){
+function recalcSalaryCap(){
 
-const tbody=document.querySelector(`#${tableId} tbody`)
-tbody.innerHTML=""
+  const removed = Object.values(builderState)
+  .reduce((sum,p)=> sum + parseValue(p.contract),0);
 
-players.forEach(p=>{
+  const rows = document.querySelectorAll("#salary-cap-block tbody tr");
 
-const tr=document.createElement("tr")
+  if(!rows.length) return;
 
-tr.innerHTML=`
+  const usedRow = rows[1];
+  const capSpaceRow = rows[4];
 
-<td>
-<input type="checkbox"
-class="builder-check"
-data-salary="${p.contract}">
-</td>
+  const usedCells = usedRow.querySelectorAll("td");
 
-<td>${p.name}</td>
-<td>${p.pos}</td>
-<td>${p.team}</td>
-<td>${p.contract}</td>
+  usedCells.forEach(cell=>{
 
-`
+    const base = parseValue(cell.textContent);
+    const newVal = Math.max(0, base - removed);
 
-tbody.appendChild(tr)
+    cell.textContent =
+    "$"+newVal.toLocaleString("de-DE");
 
-})
+  });
 
 }
 
-function parseMoney(str){
+// ----------------------------
+// Dead Cap Tabelle
+// ----------------------------
 
-return parseInt(str.replace(/[^0-9]/g,""))||0
+function renderDeadCapTable(data,rosterName){
 
-}
+  const header=document.getElementById("deadcap-header");
+  const tbody=document.querySelector("#deadcap-table tbody");
 
-function updateSalaryBlock(){
+  header.innerHTML="";
+  tbody.innerHTML="";
 
-const teamCap=160000000
+  if(!data.length) return;
 
-let used=0
+  const fixedCols=["Name","Status"];
 
-activePlayers.forEach(p=>{
+  const yearCols=Array.from(
+  new Set(data.flatMap(r=>Object.keys(r).filter(k=>/^\d{4}$/.test(k))))
+  ).sort();
 
-const salary=parseMoney(p.contract)
+  const cols=[...fixedCols,...yearCols];
 
-const check=document.querySelector(`input[data-salary="${p.contract}"]`)
+  cols.forEach(c=>{
+    const th=document.createElement("th");
+    th.textContent=c;
+    header.appendChild(th);
+  });
 
-if(!check||!check.checked){
+  const filtered=data.filter(r=>r.Owner===rosterName);
 
-used+=salary
+  filtered.forEach(row=>{
 
-}
+    const tr=document.createElement("tr");
 
-})
+    cols.forEach(c=>{
+      const td=document.createElement("td");
+      td.textContent=row[c] || "-";
+      tr.appendChild(td);
+    });
 
-const space=teamCap-used
+    tbody.appendChild(tr);
 
-document.getElementById("salary-cap-block").innerHTML=`
-
-<table>
-
-<tr>
-<th>Team Salary Cap</th>
-<td>$${teamCap.toLocaleString("de-DE")}</td>
-</tr>
-
-<tr>
-<th>Used Cap</th>
-<td>$${used.toLocaleString("de-DE")}</td>
-</tr>
-
-<tr>
-<th>Cap Space</th>
-<td>$${space.toLocaleString("de-DE")}</td>
-</tr>
-
-</table>
-
-`
+  });
 
 }
 
-document.addEventListener("change",e=>{
+// ----------------------------
+// Helper
+// ----------------------------
 
-if(e.target.classList.contains("builder-check")){
+const parseValue=str=>{
+  if(!str) return 0;
+  const num=str.toString().replace(/[^0-9]/g,'');
+  return parseInt(num) || 0;
+};
 
-updateSalaryBlock()
+// ----------------------------
+// Builder Checkbox Listener
+// ----------------------------
 
-}
+document.addEventListener("change",function(e){
 
-})
+  if(!e.target.classList.contains("builder-check")) return;
+
+  const id=e.target.dataset.id;
+
+  if(e.target.checked){
+    builderState[id]=e.target.dataset;
+  }else{
+    delete builderState[id];
+  }
+
+  updateBuilderSummary();
+  recalcSalaryCap();
+
+});
+
+// ----------------------------
+// Roster Auswahl
+// ----------------------------
 
 document.getElementById("roster-select")
 .addEventListener("change",e=>{
 
-loadRoster(e.target.value)
+  builderState={};
+  loadRosterPage(e.target.value);
 
-})
+});
 
-loadRoster(document.getElementById("roster-select").value)
+loadRosterPage(document.getElementById("roster-select").value);

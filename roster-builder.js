@@ -1,59 +1,89 @@
 const leagueId = "1311998228123643904"
 
-async function fetchSheetPlayers() {
+let sheetData=[]
+let sleeperData={}
+let activePlayers=[]
+let irPlayers=[]
 
-const res = await fetch("https://opensheet.elk.sh/1TmZedqXNrEZ-LtPxma7AemFsKOoHErFgZhjIOK3C0hc/Sheet1")
+async function fetchSheetPlayers(){
+
+const res=await fetch("https://opensheet.elk.sh/1TmZedqXNrEZ-LtPxma7AemFsKOoHErFgZhjIOK3C0hc/Sheet1")
 return await res.json()
 
 }
 
-async function fetchSleeperPlayers() {
+async function fetchSleeperPlayers(){
 
-const res = await fetch("https://api.sleeper.app/v1/players/nfl")
+const res=await fetch("https://api.sleeper.app/v1/players/nfl")
 return await res.json()
 
 }
 
 async function loadRoster(rosterId){
 
-const sheetData = await fetchSheetPlayers()
-const sleeperData = await fetchSleeperPlayers()
+sheetData=await fetchSheetPlayers()
+sleeperData=await fetchSleeperPlayers()
 
-const rosterRes = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/rosters`)
-const rosters = await rosterRes.json()
+const rosterRes=await fetch(`https://api.sleeper.app/v1/league/${leagueId}/rosters`)
+const rosters=await rosterRes.json()
 
-const roster = rosters.find(r => r.roster_id == rosterId)
+const roster=rosters.find(r=>r.roster_id==rosterId)
 
-const tbody = document.querySelector("#builder-table tbody")
+const taxiIds=(roster.taxi||[]).map(String)
+const irIds=(roster.reserve||[]).map(String)
+const allIds=(roster.players||[]).map(String)
+
+const activeIds=allIds.filter(id=>!taxiIds.includes(id)&&!irIds.includes(id))
+
+activePlayers=activeIds.map(mapPlayer)
+irPlayers=irIds.map(mapPlayer)
+
+renderTable("active-roster",activePlayers)
+renderTable("taxi-roster",taxiIds.map(mapPlayer))
+renderTable("ir-roster",irPlayers)
+
+updateSalaryBlock()
+
+}
+
+function mapPlayer(id){
+
+const sleeper=sleeperData[id]||{}
+const sheet=sheetData.find(p=>String(p["Player ID"])===id)||{}
+
+return{
+
+id,
+name:sleeper.full_name||"-",
+pos:sleeper.position||"-",
+team:sleeper.team||"-",
+contract:sheet.Contract||"$0"
+
+}
+
+}
+
+function renderTable(tableId,players){
+
+const tbody=document.querySelector(`#${tableId} tbody`)
 tbody.innerHTML=""
 
-const playerIds = roster.players || []
+players.forEach(p=>{
 
-playerIds.forEach(id => {
-
-const sleeper = sleeperData[id] || {}
-const sheet = sheetData.find(p => String(p["Player ID"]) === String(id)) || {}
-
-const name = sleeper.full_name || "-"
-const pos = sleeper.position || "-"
-const team = sleeper.team || "-"
-const contract = sheet.Contract || "$0"
-
-const tr = document.createElement("tr")
+const tr=document.createElement("tr")
 
 tr.innerHTML=`
 
 <td>
 <input type="checkbox"
-class="player-check"
-data-salary="${contract}"
-data-pos="${pos}">
+class="builder-check"
+data-salary="${p.contract}">
 </td>
 
-<td>${name}</td>
-<td>${pos}</td>
-<td>${team}</td>
-<td>${contract}</td>
+<td>${p.name}</td>
+<td>${p.pos}</td>
+<td>${p.team}</td>
+<td>${p.contract}</td>
 
 `
 
@@ -65,52 +95,69 @@ tbody.appendChild(tr)
 
 function parseMoney(str){
 
-if(!str) return 0
-return parseInt(str.replace(/[^0-9]/g,"")) || 0
+return parseInt(str.replace(/[^0-9]/g,""))||0
 
 }
 
-function updateSummary(){
+function updateSalaryBlock(){
 
-const checks = document.querySelectorAll(".player-check:checked")
+const teamCap=160000000
 
-let totalSalary = 0
-let positions = {}
+let used=0
 
-checks.forEach(cb=>{
+activePlayers.forEach(p=>{
 
-const salary = parseMoney(cb.dataset.salary)
-const pos = cb.dataset.pos
+const salary=parseMoney(p.contract)
 
-totalSalary += salary
+const check=document.querySelector(`input[data-salary="${p.contract}"]`)
 
-positions[pos] = (positions[pos] || 0) + 1
+if(!check||!check.checked){
+
+used+=salary
+
+}
 
 })
 
-document.getElementById("selected-count").textContent = checks.length
+const space=teamCap-used
 
-document.getElementById("selected-salary").textContent =
-"$"+totalSalary.toLocaleString("de-DE")
+document.getElementById("salary-cap-block").innerHTML=`
 
-const posText = Object.entries(positions)
-.map(([p,c])=>`${p}: ${c}`)
-.join(" | ")
+<table>
 
-document.getElementById("position-count").textContent = posText
+<tr>
+<th>Team Salary Cap</th>
+<td>$${teamCap.toLocaleString("de-DE")}</td>
+</tr>
+
+<tr>
+<th>Used Cap</th>
+<td>$${used.toLocaleString("de-DE")}</td>
+</tr>
+
+<tr>
+<th>Cap Space</th>
+<td>$${space.toLocaleString("de-DE")}</td>
+</tr>
+
+</table>
+
+`
 
 }
 
-document.addEventListener("change", e=>{
+document.addEventListener("change",e=>{
 
-if(e.target.classList.contains("player-check")){
-updateSummary()
+if(e.target.classList.contains("builder-check")){
+
+updateSalaryBlock()
+
 }
 
 })
 
 document.getElementById("roster-select")
-.addEventListener("change", e=>{
+.addEventListener("change",e=>{
 
 loadRoster(e.target.value)
 

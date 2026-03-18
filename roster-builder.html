@@ -2,36 +2,34 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Roster Viewer</title>
+  <title>Roster Builder</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
  <!-- Navigation -->
-  <nav class="navbar">
-  <div class="navbar-container">
-    <a href="index.html" class="nav-logo">Dashboard</a>
-    <a href="roster.html" class="nav-link">Roster</a>
-    <a href="undrafted-taxi.html" class="nav-link">UDFA</a>
-    <a href="players.html" class="nav-link">Spielerliste</a>
+ <nav class="navbar">
+   <div class="navbar-container">
+     <a href="index.html" class="nav-logo">Dashboard</a>
+     <a href="roster.html" class="nav-link">Roster</a>
+     <a href="undrafted-taxi.html" class="nav-link">UDFA</a>
+     <a href="players.html" class="nav-link">Spielerliste</a>
 
-    <!-- Dropdown -->
-    <div class="dropdown">
-      <button class="dropbtn">League ▾</button>
-      <div class="dropdown-content">
-        <a href="transactions.html">Transactions</a>
-        <a href="hof.html">Hall of Fame</a>
-      </div>
-    </div>
+     <div class="dropdown">
+       <button class="dropbtn">League ▾</button>
+       <div class="dropdown-content">
+         <a href="transactions.html">Transactions</a>
+         <a href="hof.html">Hall of Fame</a>
+       </div>
+     </div>
 
-    <a href="salary.html" class="nav-link">Salary</a>
-    <a href="rulebook.html" class="nav-link">Regelwerk</a>
-  </div>
-</nav>
+     <a href="salary.html" class="nav-link">Salary</a>
+     <a href="rulebook.html" class="nav-link">Regelwerk</a>
+   </div>
+ </nav>
 
-<h1>Roster Viewer</h1>
+<h1>Roster Builder</h1>
 
-<!-- Roster Auswahl -->
 <!-- Roster Auswahl -->
 <div class="filter-container roster-filter">
   <label for="roster-select">Roster:</label>
@@ -64,6 +62,11 @@
   <label><input type="checkbox" id="toggle-active" checked> Active</label>
   <label><input type="checkbox" id="toggle-taxi" checked> Taxi</label>
   <label><input type="checkbox" id="toggle-ir" checked> IR / Reserve</label>
+</div>
+
+<!-- Builder Checkboxen -->
+<div id="builder-checkboxes" class="filter-container">
+  <strong>Roster Builder:</strong>
 </div>
 
 <!-- Active -->
@@ -107,8 +110,3 @@
 <script src="roster-builder.js"></script>
 </body>
 </html>
-
-
-
-
-

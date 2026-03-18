@@ -1,6 +1,7 @@
+// ----------------------------
+// Konfiguration
+// ----------------------------
 const leagueId = "1311998228123643904";
-
-let includedPlayers = new Set(); // Spieler für Salary Cap Berechnung
 
 // ----------------------------
 // Daten laden
@@ -21,13 +22,18 @@ async function fetchSleeperPlayers() {
 }
 
 // ----------------------------
-// Seite laden
+// Hauptfunktion zum Laden des Rosters
 // ----------------------------
 async function loadRosterPage(rosterId) {
   const sheetData = await fetchSheetPlayers();
   const sleeperData = await fetchSleeperPlayers();
   const cutSheetData = await fetchCutSheet();
 
+  // Daten im globalen Cache speichern für Salary Checkbox Updates
+  window.sheetDataCache = sheetData;
+  window.cutSheetDataCache = cutSheetData;
+
+  // Alle Roster der League abrufen
   const rosterRes = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/rosters`);
   const rosters = await rosterRes.json();
   const roster = rosters.find(r => r.roster_id == rosterId);
@@ -40,12 +46,13 @@ async function loadRosterPage(rosterId) {
   const irIds = (roster.reserve || []).map(String);
   const activeIds = allIds.filter(id => !taxiIds.includes(id) && !irIds.includes(id));
 
-  // Jahres-Spalten dynamisch
+  // Jahres-Spalten dynamisch ermitteln
   const yearCols = Array.from(
     new Set(sheetData.flatMap(p => Object.keys(p).filter(k => /^\d{4}$/.test(k))))
   ).sort();
+  window.yearColsCache = yearCols;
 
-  const fixedCols = ["Include", "Player ID", "Name", "Position", "NFL Team", "Contract"];
+  const fixedCols = ["Player ID", "Name", "Position", "NFL Team", "Contract"];
 
   // Tabellen Header aufbauen
   ["active-roster", "taxi-roster", "ir-roster"].forEach(tableId => {
@@ -54,11 +61,9 @@ async function loadRosterPage(rosterId) {
     fixedCols.forEach(c => {
       const th = document.createElement("th");
       th.textContent = c;
-      if(c !== "Include"){
-        th.dataset.sort = c;
-        th.style.cursor = "pointer";
-        th.addEventListener("click", () => sortTable(tableId, th.cellIndex));
-      }
+      th.dataset.sort = c;
+      th.style.cursor = "pointer";
+      th.addEventListener("click", () => sortTable(tableId, th.cellIndex));
       row.appendChild(th);
     });
     yearCols.forEach(y => {
@@ -71,6 +76,9 @@ async function loadRosterPage(rosterId) {
     });
   });
 
+  // ----------------------------
+  // Spieler-Mapping
+  // ----------------------------
   function mapPlayer(id) {
     const sleeper = Object.values(sleeperData).find(p => String(p.player_id) === id) || {};
     const sheet = sheetData.find(p => String(p["Player ID"]) === id) || {};
@@ -84,9 +92,6 @@ async function loadRosterPage(rosterId) {
       const tr = document.createElement("tr");
       const pos = p.position || "-";
       let html = `
-        <td>
-          <input type="checkbox" class="salary-checkbox" data-player-id="${p.player_id || p["Player ID"]}" checked>
-        </td>
         <td>${p.player_id || p["Player ID"] || "-"}</td>
         <td>${p.full_name || "-"}</td>
         <td class="pos-${pos}">${pos}</td>
@@ -97,20 +102,8 @@ async function loadRosterPage(rosterId) {
       tr.innerHTML = html;
       tbody.appendChild(tr);
     });
-
-    // Checkbox Event Listener
-    tbody.querySelectorAll(".salary-checkbox").forEach(cb => {
-      const pid = cb.dataset.playerId;
-      if(cb.checked) includedPlayers.add(pid);
-      cb.addEventListener("change", e => {
-        if(e.target.checked){
-          includedPlayers.add(pid);
-        } else {
-          includedPlayers.delete(pid);
-        }
-        updateSalaryCap();
-      });
-    });
+    // Checkboxen hinzufügen
+    addPlayerCheckboxes(tableId);
   }
 
   renderTable("active-roster", activeIds);
@@ -124,7 +117,7 @@ async function loadRosterPage(rosterId) {
     ["active-roster","taxi-roster","ir-roster"].forEach(tableId => {
       const tbody = document.querySelector(`#${tableId} tbody`);
       Array.from(tbody.rows).forEach(r => {
-        r.style.display = r.cells[2].textContent.toLowerCase().includes(filter) ? "" : "none";
+        r.style.display = r.cells[1].textContent.toLowerCase().includes(filter) ? "" : "none";
       });
     });
   };
@@ -133,7 +126,6 @@ async function loadRosterPage(rosterId) {
   const posSelect = document.getElementById("position-filter");
   const positionsSet = new Set();
   const rosterPlayerIds = [...activeIds, ...taxiIds, ...irIds];
-
   sheetData.forEach(p => {
     const id = String(p["Player ID"]);
     if (rosterPlayerIds.includes(id)) {
@@ -148,7 +140,6 @@ async function loadRosterPage(rosterId) {
       if (pos) positionsSet.add(pos);
     }
   });
-
   const positions = Array.from(positionsSet).sort();
   posSelect.innerHTML = '<option value="">Alle Positionen</option>';
   positions.forEach(p => {
@@ -157,43 +148,128 @@ async function loadRosterPage(rosterId) {
     option.textContent = p;
     posSelect.appendChild(option);
   });
-
   posSelect.onchange = () => {
     const val = posSelect.value.toUpperCase().trim();
     ["active-roster","taxi-roster","ir-roster"].forEach(tableId => {
       const tbody = document.querySelector(`#${tableId} tbody`);
       Array.from(tbody.rows).forEach(r => {
-        const pos = (r.cells[3].textContent || '').toUpperCase().trim();
+        const pos = (r.cells[2].textContent || '').toUpperCase().trim();
         r.style.display = !val || pos === val ? "" : "none";
       });
     });
   };
 
-  // Dead Cap Tabelle
+  // Dead Cap Tabelle rendern
   renderDeadCapTable(cutSheetData, rosterName);
 
-  // Initial Salary Cap
+  // Salary Cap Block initial rendern
   updateSalaryCap();
-
-  // ----------------------------
-  // Update Salary Cap Block
-  function updateSalaryCap() {
-    const activePlayersData = activeIds.map(mapPlayer).filter(p => includedPlayers.has(p.player_id || p["Player ID"]));
-    const irPlayersData = irIds.map(mapPlayer).filter(p => includedPlayers.has(p.player_id || p["Player ID"]));
-    const deadCapPlayersData = cutSheetData.filter(p => p.Owner === rosterName);
-
-    renderSalaryCapBlockCustom(sheetData, deadCapPlayersData, rosterName, yearCols, activePlayersData, irPlayersData);
-  }
+  setupRosterVisibilityToggles();
 }
 
 // ----------------------------
-// Salary Cap Block (angepasst)
-function renderSalaryCapBlockCustom(sheetData, deadCapPlayers, rosterName, yearCols, activePlayers, irPlayers) {
+// Dead Cap Tabelle
+// ----------------------------
+function renderDeadCapTable(data, rosterName) {
+  const header = document.getElementById("deadcap-header");
+  const tbody = document.querySelector("#deadcap-table tbody");
+  header.innerHTML = "";
+  tbody.innerHTML = "";
+  if (!data.length) return;
+
+  const fixedCols = ["Name", "Status"];
+  const yearCols = Array.from(
+    new Set(data.flatMap(r => Object.keys(r).filter(k => /^\d{4}$/.test(k))))
+  ).sort();
+  const cols = [...fixedCols, ...yearCols];
+
+  cols.forEach(c => {
+    const th = document.createElement("th");
+    th.textContent = c;
+    header.appendChild(th);
+  });
+
+  const filteredData = data.filter(r => r.Owner === rosterName);
+
+  filteredData.forEach(row => {
+    const tr = document.createElement("tr");
+    cols.forEach(c => {
+      const td = document.createElement("td");
+      td.textContent = row[c] || "-";
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+// ----------------------------
+// Helper zum Parsen von Werten
+// ----------------------------
+const parseValue = str => {
+  if (!str) return 0;
+  const num = str.toString().replace(/[^0-9]/g,'');
+  return parseInt(num) || 0;
+};
+
+// ----------------------------
+// Checkboxen pro Spieler
+// ----------------------------
+function addPlayerCheckboxes(tableId) {
+  const tbody = document.querySelector(`#${tableId} tbody`);
+  Array.from(tbody.rows).forEach(row => {
+    if (!row.querySelector(".player-checkbox")) {
+      const td = document.createElement("td");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.className = "player-checkbox";
+      checkbox.checked = true;
+      checkbox.addEventListener("change", updateSalaryCap);
+      td.appendChild(checkbox);
+      row.insertBefore(td, row.cells[0]);
+    }
+  });
+}
+
+// ----------------------------
+// Spieler für Salary Berechnung
+// ----------------------------
+function getSelectedPlayers(tableId, sheetData) {
+  const tbody = document.querySelector(`#${tableId} tbody`);
+  if (!tbody) return [];
+  const players = [];
+  Array.from(tbody.rows).forEach(row => {
+    const checkbox = row.querySelector(".player-checkbox");
+    if (checkbox && checkbox.checked) {
+      const playerId = row.cells[1].textContent;
+      const p = sheetData.find(p => String(p["Player ID"]) === playerId);
+      if (p) players.push(p);
+    }
+  });
+  return players;
+}
+
+// ----------------------------
+// Salary Cap Block rendern
+// ----------------------------
+function renderSalaryCapBlock(sheetData, cutSheetData, rosterName, yearCols) {
   let container = document.getElementById("salary-cap-block");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "salary-cap-block";
+    container.className = "filter-container";
+    container.style.flexDirection = "column";
+    container.style.marginBottom = "15px";
+    const filters = document.querySelector(".filter-container");
+    filters.parentNode.insertBefore(container, filters.nextSibling);
+  }
   container.innerHTML = "";
 
   const fixedRows = ["Team Salary Cap", "Used Salary Cap", "Injured Reserve", "Dead Cap", "Team Cap Space"];
   const teamCap = 160000000;
+
+  const activePlayers = getSelectedPlayers("active-roster", sheetData);
+  const irPlayers = getSelectedPlayers("ir-roster", sheetData);
+  const deadCapPlayers = cutSheetData.filter(p => p.Owner === rosterName);
 
   const table = document.createElement("table");
   table.style.width = "100%";
@@ -211,18 +287,8 @@ function renderSalaryCapBlockCustom(sheetData, deadCapPlayers, rosterName, yearC
   });
   thead.appendChild(headerTr);
 
-  const parseValue = str => {
-    if (!str) return 0;
-    const num = str.toString().replace(/[^0-9]/g, '');
-    return parseInt(num) || 0;
-  };
-
-  const sumForYear = (players, year) => {
-    return players.reduce((sum, p) => sum + parseValue(p[year]), 0);
-  };
-  const sumDeadCapForYear = (players, year) => {
-    return players.reduce((sum, p) => sum + parseValue(p[year]), 0);
-  };
+  const sumForYear = (players, year) => players.reduce((sum,p) => sum + parseValue(p[year]), 0);
+  const sumDeadCapForYear = (players, year) => players.reduce((sum,p) => sum + parseValue(p[year]), 0);
 
   fixedRows.forEach(rowName => {
     const tr = document.createElement("tr");
@@ -233,16 +299,14 @@ function renderSalaryCapBlockCustom(sheetData, deadCapPlayers, rosterName, yearC
     yearCols.forEach(y => {
       const td = document.createElement("td");
       let value = 0;
-      switch(rowName) {
+      switch(rowName){
         case "Team Salary Cap": value = teamCap; break;
         case "Used Salary Cap": value = sumForYear(activePlayers, y); break;
         case "Injured Reserve": value = sumForYear(irPlayers, y); break;
         case "Dead Cap": value = sumDeadCapForYear(deadCapPlayers, y); break;
-        case "Team Cap Space":
-          value = teamCap - sumForYear(activePlayers, y) - sumDeadCapForYear(deadCapPlayers, y); 
-          break;
+        case "Team Cap Space": value = teamCap - sumForYear(activePlayers, y) - sumDeadCapForYear(deadCapPlayers, y); break;
       }
-      td.textContent = `$${value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
+      td.textContent = `$${value.toString().replace(/\B(?=(\d{3})+(?!\d))/g,".")}`;
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
@@ -254,45 +318,16 @@ function renderSalaryCapBlockCustom(sheetData, deadCapPlayers, rosterName, yearC
 }
 
 // ----------------------------
-// Dead Cap Tabelle
-function renderDeadCapTable(data, rosterName) {
-  const header = document.getElementById("deadcap-header");
-  const tbody = document.querySelector("#deadcap-table tbody");
-  header.innerHTML = "";
-  tbody.innerHTML = "";
-  if (!data.length) return;
-
-  const fixedCols = ["Name", "Status"];
-  const yearCols = Array.from(
-    new Set(data.flatMap(r => Object.keys(r).filter(k => /^\d{4}$/.test(k))))
-  ).sort();
-
-  const cols = [...fixedCols, ...yearCols];
-
-  // Header
-  cols.forEach(c => {
-    const th = document.createElement("th");
-    th.textContent = c;
-    header.appendChild(th);
-  });
-
-  // Filter nach Owner
-  const filteredData = data.filter(r => r.Owner === rosterName);
-
-  // Rows
-  filteredData.forEach(row => {
-    const tr = document.createElement("tr");
-    cols.forEach(c => {
-      const td = document.createElement("td");
-      td.textContent = row[c] || "-";
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
-  });
+// Update Salary Cap
+// ----------------------------
+function updateSalaryCap() {
+  const rosterName = document.getElementById("roster-select").selectedOptions[0].textContent;
+  renderSalaryCapBlock(window.sheetDataCache, window.cutSheetDataCache, rosterName, window.yearColsCache);
 }
 
 // ----------------------------
 // Sortierung
+// ----------------------------
 function sortTable(tableId, colIndex) {
   const table = document.getElementById(tableId);
   const tbody = table.tBodies[0];
@@ -311,12 +346,37 @@ function sortTable(tableId, colIndex) {
 }
 
 // ----------------------------
+// Sichtbarkeit Active / Taxi / IR
+// ----------------------------
+function setupRosterVisibilityToggles() {
+  const toggleMap = [
+    { checkbox: "toggle-active", section: "section-active" },
+    { checkbox: "toggle-taxi", section: "section-taxi" },
+    { checkbox: "toggle-ir", section: "section-ir" }
+  ];
+
+  toggleMap.forEach(({ checkbox, section }) => {
+    const cb = document.getElementById(checkbox);
+    const sec = document.getElementById(section);
+    if (!cb || !sec) return;
+
+    const updateVisibility = () => {
+      sec.style.display = cb.checked ? "" : "none";
+      updateSalaryCap();
+    };
+
+    cb.removeEventListener("change", updateVisibility);
+    cb.addEventListener("change", updateVisibility);
+    updateVisibility();
+  });
+}
+
+// ----------------------------
 // Roster Auswahl Event
+// ----------------------------
 document.getElementById("roster-select").addEventListener("change", e => {
-  includedPlayers.clear();
   loadRosterPage(e.target.value);
 });
 
-// Initial laden
-includedPlayers.clear();
+// initial laden
 loadRosterPage(document.getElementById("roster-select").value);

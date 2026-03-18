@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Roster Builder</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h1>Roster Builder</h1>
+
+<div class="filter-container">
+
+<label>Roster</label>
+<select id="roster-select">
+<option value="1">Ralf</option>
+<option value="2">TitleTownPat</option>
+<option value="3">MrNilsson</option>
+<option value="4">kleinerlouis</option>
+<option value="5">Ulle</option>
+<option value="6">TST1860</option>
+<option value="7">brab97</option>
+<option value="8">Himp84</option>
+<option value="9">TobiWalonso</option>
+<option value="10">49erflo</option>
+<option value="11">Heesy</option>
+<option value="12">CrazyGringo</option>
+</select>
+
+</div>
+
+<!-- Calculator -->
+<div id="builder-summary" class="filter-container">
+
+<div>
+<strong>Selected Players</strong>
+<div id="selected-count">0</div>
+</div>
+
+<div>
+<strong>Total Salary</strong>
+<div id="selected-salary">$0</div>
+</div>
+
+<div>
+<strong>Positions</strong>
+<div id="position-count"></div>
+</div>
+
+</div>
+
+<table id="builder-table">
+
+<thead>
+<tr>
+
+<th>Select</th>
+<th>Name</th>
+<th>Position</th>
+<th>NFL Team</th>
+<th>Contract</th>
+
+</tr>
+</thead>
+
+<tbody></tbody>
+
+</table>
+
+<script src="roster-builder.js"></script>
+
+</body>
+</html>

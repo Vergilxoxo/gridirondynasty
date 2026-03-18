@@ -10,9 +10,11 @@
 
 <h1>Roster Builder</h1>
 
-<div class="filter-container">
+<!-- Roster Auswahl -->
+<div class="filter-container roster-filter">
 
-<label>Roster</label>
+<label for="roster-select">Roster:</label>
+
 <select id="roster-select">
 <option value="1">Ralf</option>
 <option value="2">TitleTownPat</option>
@@ -30,43 +32,77 @@
 
 </div>
 
-<!-- Calculator -->
-<div id="builder-summary" class="filter-container">
+<!-- Salary Cap Block -->
+<div id="salary-cap-block"></div>
 
-<div>
-<strong>Selected Players</strong>
-<div id="selected-count">0</div>
-</div>
+<!-- Active -->
+<div class="roster-section">
 
-<div>
-<strong>Total Salary</strong>
-<div id="selected-salary">$0</div>
-</div>
+<h2>Active Roster</h2>
 
-<div>
-<strong>Positions</strong>
-<div id="position-count"></div>
-</div>
-
-</div>
-
-<table id="builder-table">
+<table id="active-roster">
 
 <thead>
 <tr>
-
-<th>Select</th>
+<th>Builder</th>
 <th>Name</th>
 <th>Position</th>
 <th>NFL Team</th>
 <th>Contract</th>
-
 </tr>
 </thead>
 
 <tbody></tbody>
 
 </table>
+
+</div>
+
+<!-- Taxi -->
+<div class="roster-section">
+
+<h2>Taxi Squad</h2>
+
+<table id="taxi-roster">
+
+<thead>
+<tr>
+<th>Builder</th>
+<th>Name</th>
+<th>Position</th>
+<th>NFL Team</th>
+<th>Contract</th>
+</tr>
+</thead>
+
+<tbody></tbody>
+
+</table>
+
+</div>
+
+<!-- IR -->
+<div class="roster-section">
+
+<h2>IR / Reserve</h2>
+
+<table id="ir-roster">
+
+<thead>
+<tr>
+<th>Builder</th>
+<th>Name</th>
+<th>Position</th>
+<th>NFL Team</th>
+<th>Contract</th>
+</tr>
+</thead>
+
+<tbody></tbody>
+
+</table>
+
+</div>
 
 <script src="roster-builder.js"></script>
 

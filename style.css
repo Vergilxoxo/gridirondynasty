@@ -947,15 +947,3 @@ thead th.sort-desc::after {
 .dropdown:hover .dropdown-content {
   display: block;
 }
-
-
-/* Checkboxen in Tabellenzeilen */
-table td input.player-checkbox {
-  margin-right: 5px;
-}
-
-/* Optional: Spalte für Checkbox fixieren */
-table th:first-child, table td:first-child {
-  width: 30px;
-  text-align: center;
-}

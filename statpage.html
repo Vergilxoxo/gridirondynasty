@@ -156,56 +156,38 @@ function calculateSeasonRecords(allWeeks) {
     });
   });
 
-  // --- Top 3 Spieler ---
-  const topPlayers = Object.entries(playerMaxGame)
-    .sort((a, b) => b[1].points - a[1].points)
-    .slice(0, 3);
+  // Best Game Player
+  const bestGameEntry = Object.entries(playerMaxGame).sort((a, b) => b[1].points - a[1].points)[0];
+  const bestGamePlayerData = playersData[bestGameEntry[0]];
 
-  // --- Top 3 Manager ---
-  const topManagers = Object.entries(managerTotals)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(([rosterId, points]) => ({
-      rosterId,
-      points,
-      name: document.querySelector(`#roster-select option[value="${rosterId}"]`)?.text || `Roster ${rosterId}`
-    }));
+  // Best Manager
+  const bestManagerEntry = Object.entries(managerTotals).sort((a, b) => b[1] - a[1])[0];
+  const managerName = document.querySelector(`#roster-select option[value="${bestManagerEntry[0]}"]`)?.text || `Roster ${bestManagerEntry[0]}`;
 
-  // --- Build HTML ---
+  // Build HTML
   let html = `<div style="display:flex;gap:16px;flex-wrap:wrap;">`;
 
-  // 🏆 Top Spieler Card
+  // 🏆 Best Game
   html += `
-    <div class="records-card" style="flex:1;min-width:240px;background:#ffd70033;padding:10px;border-radius:10px;text-align:center;">
-      <div class="title">🥇 Top Spieler</div>
-      ${topPlayers.map((entry, idx) => {
-        const playerData = playersData[entry[0]];
-        const pts = entry[1].points.toFixed(2);
-        const week = entry[1].week;
-        return `
-          <div style="margin:5px 0;">
-            <strong>#${idx+1} ${playerData.full_name}</strong><br>
-            ${pts} pts (Week ${week})
-          </div>
-        `;
-      }).join('')}
+    <div class="records-card" style="flex:1;min-width:180px;">
+      <div class="title">🥇 Best Game</div>
+      <img src="https://sleepercdn.com/content/nfl/players/thumb/${bestGameEntry[0]}.jpg" 
+           alt="${bestGamePlayerData.full_name}">
+      <div>${bestGamePlayerData.full_name}</div>
+      <div class="points">${bestGameEntry[1].points.toFixed(2)} pts (Week ${bestGameEntry[1].week})</div>
     </div>
   `;
 
-  // 🥈 Top Manager Card
+  // 🥈 Top Manager
   html += `
-    <div class="records-card" style="flex:1;min-width:240px;background:#c0c0c033;padding:10px;border-radius:10px;text-align:center;">
+    <div class="records-card" style="flex:1;min-width:180px;">
       <div class="title">🥈 Top Manager</div>
-      ${topManagers.map((mgr, idx) => `
-        <div style="margin:5px 0;">
-          <strong>#${idx+1} ${mgr.name}</strong><br>
-          ${mgr.points.toFixed(2)} pts
-        </div>
-      `).join('')}
+      <div>${managerName}</div>
+      <div class="points">${bestManagerEntry[1].toFixed(2)} pts</div>
     </div>
   `;
 
-  // 🏈 Positions (QB → RB → WR → TE → DL → LB → DB)
+  // 🏈 Positions (sortiert QB → RB → WR → TE → DL → LB → DB)
   const positionOrder = ["QB","RB","WR","TE","DL","LB","DB"];
   html += `<div style="flex-basis:100%;margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;">`;
   positionOrder.forEach(pos => {
@@ -213,9 +195,9 @@ function calculateSeasonRecords(allWeeks) {
     if(rec){
       const pdata = playersData[rec.playerId];
       html += `
-        <div class="records-card" style="flex:1;min-width:140px;background:#eee;padding:8px;border-radius:8px;text-align:center;">
+        <div class="records-card" style="flex:1;min-width:140px;">
           <div class="title">${pos}</div>
-          <img src="https://sleepercdn.com/content/nfl/players/thumb/${rec.playerId}.jpg" alt="${pdata.full_name}" style="width:40px;height:40px;border-radius:50%;margin:5px 0;">
+          <img src="https://sleepercdn.com/content/nfl/players/thumb/${rec.playerId}.jpg" alt="${pdata.full_name}">
           <div>${pdata.full_name}</div>
           <div class="points">${rec.points.toFixed(2)} pts (Week ${rec.week})</div>
         </div>
@@ -226,6 +208,7 @@ function calculateSeasonRecords(allWeeks) {
 
   recordsDiv.innerHTML = html;
 }
+
 async function loadLeaders(){
   const status = document.getElementById("status");
 

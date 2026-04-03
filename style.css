@@ -947,3 +947,44 @@ thead th.sort-desc::after {
 .dropdown:hover .dropdown-content {
   display: block;
 }
+
+/* Season Records Cards */
+.records-card {
+  background-color: #1b2a3a; /* passend zum restlichen Dark-Theme */
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.records-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.5);
+}
+
+/* Spielerbild rund + passend zum Dark Theme */
+.records-card img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #223348; /* dezente Umrandung */
+  margin-bottom: 8px;
+}
+
+/* Titel und Punkte */
+.records-card .title {
+  font-size: 12px;
+  color: #bbbbbb;
+  margin-bottom: 4px;
+}
+
+.records-card .points {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e90ff;
+}

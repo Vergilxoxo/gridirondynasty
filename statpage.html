@@ -63,15 +63,12 @@
 <option value="RB">RB</option>
 <option value="WR">WR</option>
 <option value="TE">TE</option>
-<option value="K">K</option>
 <option value="DL">DL</option>
 <option value="LB">LB</option>
 <option value="DB">DB</option>
 </select>
 
 </div>
-
-<div id="status">Lade Daten...</div>
 
 <table>
 <thead>
@@ -199,8 +196,6 @@ async function loadLeaders(){
   }
 
   leaderboardData.sort((a,b)=>b.points-a.points);
-
-  status.innerText="Fertig geladen";
 
   renderTable();
 

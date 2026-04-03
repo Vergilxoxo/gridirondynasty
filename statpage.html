@@ -26,11 +26,11 @@
 
 <h1>Season Leaders</h1>
 
-<!-- SEASON RECORDS PANEL -->
+  <!-- SEASON RECORDS PANEL -->
 <div id="season-records" style="margin:20px 0;">
   <div id="records-content"></div>
 </div>
-
+  
 <!-- FILTER -->
 <div class="filter-container">
 
@@ -88,6 +88,7 @@
 </table>
 
 <script>
+
 const seasonWeeks = 18;
 
 const leagueIds = {
@@ -122,7 +123,6 @@ async function loadPlayers(){
   playersData = await fetch("https://api.sleeper.app/v1/players/nfl").then(r => r.json());
 }
 
-// Neue Funktion: Top 3 Spieler & Manager, Positionskarten sortiert
 function calculateSeasonRecords(allWeeks) {
   const recordsDiv = document.getElementById("records-content");
   const playerMaxGame = {};
@@ -156,73 +156,51 @@ function calculateSeasonRecords(allWeeks) {
     });
   });
 
-  // Top 3 Spieler
-  const topPlayers = Object.entries(playerMaxGame)
-    .sort((a, b) => b[1].points - a[1].points)
-    .slice(0, 3);
+  // Best Game Player
+  const bestGameEntry = Object.entries(playerMaxGame).sort((a, b) => b[1].points - a[1].points)[0];
+  const bestGamePlayerData = playersData[bestGameEntry[0]];
 
-  // Top 3 Manager
-  const topManagers = Object.entries(managerTotals)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3);
+  // Best Manager
+  const bestManagerEntry = Object.entries(managerTotals).sort((a, b) => b[1] - a[1])[0];
+  const managerName = document.querySelector(`#roster-select option[value="${bestManagerEntry[0]}"]`)?.text || `Roster ${bestManagerEntry[0]}`;
 
-  let html = `<div style="display:flex;flex-direction:column;gap:20px;">`;
+  // Build HTML
+  let html = `<div style="display:flex;gap:16px;flex-wrap:wrap;">`;
 
-  // Top Spieler Kachel
-  html += `<div style="display:flex;gap:10px;background:#ffd70033;padding:12px;border-radius:12px;flex-wrap:wrap;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.2);">
-    <div style="width:100%;text-align:center;font-weight:bold;font-size:1.1em;">🥇 Top Spieler</div>`;
-  topPlayers.forEach((entry, idx) => {
-    const playerId = entry[0];
-    const pdata = playersData[playerId];
-    const pts = entry[1].points;
-    const week = entry[1].week;
-    html += `
-      <div style="flex:1;min-width:120px;text-align:center;">
-        <div>#${idx+1}</div>
-        <img src="https://sleepercdn.com/content/nfl/players/thumb/${playerId}.jpg" 
-             style="width:60px;height:60px;border-radius:50%;margin:5px 0;">
-        <div>${pdata.full_name}</div>
-        <div>${pts.toFixed(2)} pts (Week ${week})</div>
-      </div>
-    `;
-  });
-  html += `</div>`;
+  // 🏆 Best Game
+  html += `
+    <div class="records-card" style="flex:1;min-width:180px;">
+      <div class="title">🥇 Best Game</div>
+      <img src="https://sleepercdn.com/content/nfl/players/thumb/${bestGameEntry[0]}.jpg" 
+           alt="${bestGamePlayerData.full_name}">
+      <div>${bestGamePlayerData.full_name}</div>
+      <div class="points">${bestGameEntry[1].points.toFixed(2)} pts (Week ${bestGameEntry[1].week})</div>
+    </div>
+  `;
 
-  // Top Manager Kachel
-  html += `<div style="display:flex;gap:10px;background:#c0c0c033;padding:12px;border-radius:12px;flex-wrap:wrap;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.2);">
-    <div style="width:100%;text-align:center;font-weight:bold;font-size:1.1em;">🥈 Top Manager</div>`;
-  topManagers.forEach((entry, idx) => {
-    const rosterId = entry[0];
-    const pts = entry[1];
-    const managerName = document.querySelector(`#roster-select option[value="${rosterId}"]`)?.text || `Roster ${rosterId}`;
-    html += `
-      <div style="flex:1;min-width:120px;text-align:center;">
-        <div>#${idx+1}</div>
-        <div>${managerName}</div>
-        <div>${pts.toFixed(2)} pts</div>
-      </div>
-    `;
-  });
-  html += `</div>`;
+  // 🥈 Top Manager
+  html += `
+    <div class="records-card" style="flex:1;min-width:180px;">
+      <div class="title">🥈 Top Manager</div>
+      <div>${managerName}</div>
+      <div class="points">${bestManagerEntry[1].toFixed(2)} pts</div>
+    </div>
+  `;
 
-  // Positionskarten sortiert
-  const positionOrder = ["QB","RB","WR","TE","DL","LB","DB"];
+  // 🏈 Positions
   html += `<div style="flex-basis:100%;margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;">`;
-  positionOrder.forEach(pos => {
+  for (const pos in positionMax) {
     const rec = positionMax[pos];
-    if (rec) {
-      const pdata = playersData[rec.playerId];
-      html += `
-        <div style="flex:1;min-width:140px;background:#eee;padding:8px;border-radius:8px;text-align:center;">
-          <div>${pos}</div>
-          <img src="https://sleepercdn.com/content/nfl/players/thumb/${rec.playerId}.jpg" 
-               style="width:40px;height:40px;border-radius:50%;margin:5px 0;">
-          <div>${pdata.full_name}</div>
-          <div>${rec.points.toFixed(2)} pts (Week ${rec.week})</div>
-        </div>
-      `;
-    }
-  });
+    const pdata = playersData[rec.playerId];
+    html += `
+      <div class="records-card" style="flex:1;min-width:140px;">
+        <div class="title">${pos}</div>
+        <img src="https://sleepercdn.com/content/nfl/players/thumb/${rec.playerId}.jpg" alt="${pdata.full_name}">
+        <div>${pdata.full_name}</div>
+        <div class="points">${rec.points.toFixed(2)} pts (Week ${rec.week})</div>
+      </div>
+    `;
+  }
   html += `</div></div>`;
 
   recordsDiv.innerHTML = html;
@@ -314,6 +292,7 @@ window.onload = () => {
   leagueId = leagueIds[season];
   loadLeaders();
 };
+
 </script>
 
 </body>

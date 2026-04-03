@@ -156,38 +156,62 @@ function calculateSeasonRecords(allWeeks) {
     });
   });
 
-  // Best Game Player
-  const bestGameEntry = Object.entries(playerMaxGame).sort((a, b) => b[1].points - a[1].points)[0];
-  const bestGamePlayerData = playersData[bestGameEntry[0]];
+  // --- Top 3 Spieler (Best Game) ---
+  const topPlayers = Object.entries(playerMaxGame)
+    .sort((a, b) => b[1].points - a[1].points)
+    .slice(0, 3);
 
-  // Best Manager
-  const bestManagerEntry = Object.entries(managerTotals).sort((a, b) => b[1] - a[1])[0];
-  const managerName = document.querySelector(`#roster-select option[value="${bestManagerEntry[0]}"]`)?.text || `Roster ${bestManagerEntry[0]}`;
+  // --- Top 3 Manager ---
+  const topManagers = Object.entries(managerTotals)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([rosterId, points]) => ({
+      rosterId,
+      points,
+      name: document.querySelector(`#roster-select option[value="${rosterId}"]`)?.text || `Roster ${rosterId}`
+    }));
 
-  // Build HTML
+  // --- Build HTML ---
   let html = `<div style="display:flex;gap:16px;flex-wrap:wrap;">`;
 
-  // 🏆 Best Game
+  // 🏆 Best Game Card (Top 3 Spieler nebeneinander)
   html += `
-    <div class="records-card" style="flex:1;min-width:180px;">
+    <div class="records-card" style="flex:1;min-width:300px;padding:10px;border-radius:10px;background:#ffd70033;">
       <div class="title">🥇 Best Game</div>
-      <img src="https://sleepercdn.com/content/nfl/players/thumb/${bestGameEntry[0]}.jpg" 
-           alt="${bestGamePlayerData.full_name}">
-      <div>${bestGamePlayerData.full_name}</div>
-      <div class="points">${bestGameEntry[1].points.toFixed(2)} pts (Week ${bestGameEntry[1].week})</div>
+      <div style="display:flex;justify-content:space-around;align-items:flex-start;margin-top:10px;">
+        ${topPlayers.map((entry, idx) => {
+          const pdata = playersData[entry[0]];
+          return `
+            <div style="text-align:center;flex:1;margin:0 5px;">
+              <img src="https://sleepercdn.com/content/nfl/players/thumb/${entry[0]}.jpg" 
+                   alt="${pdata.full_name}" style="width:60px;height:60px;border-radius:50%;"><br>
+              <strong>#${idx+1}</strong><br>
+              ${pdata.full_name}<br>
+              ${entry[1].points.toFixed(2)} pts (Week ${entry[1].week})
+            </div>
+          `;
+        }).join('')}
+      </div>
     </div>
   `;
 
-  // 🥈 Top Manager
+  // 🥈 Top Manager Card (Top 3 Manager nebeneinander)
   html += `
-    <div class="records-card" style="flex:1;min-width:180px;">
+    <div class="records-card" style="flex:1;min-width:300px;padding:10px;border-radius:10px;background:#c0c0c033;">
       <div class="title">🥈 Top Manager</div>
-      <div>${managerName}</div>
-      <div class="points">${bestManagerEntry[1].toFixed(2)} pts</div>
+      <div style="display:flex;justify-content:space-around;align-items:flex-start;margin-top:10px;">
+        ${topManagers.map((mgr, idx) => `
+          <div style="text-align:center;flex:1;margin:0 5px;">
+            <strong>#${idx+1}</strong><br>
+            ${mgr.name}<br>
+            ${mgr.points.toFixed(2)} pts
+          </div>
+        `).join('')}
+      </div>
     </div>
   `;
 
-  // 🏈 Positions (sortiert QB → RB → WR → TE → DL → LB → DB)
+  // 🏈 Positions (QB → RB → WR → TE → DL → LB → DB)
   const positionOrder = ["QB","RB","WR","TE","DL","LB","DB"];
   html += `<div style="flex-basis:100%;margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;">`;
   positionOrder.forEach(pos => {
@@ -195,9 +219,9 @@ function calculateSeasonRecords(allWeeks) {
     if(rec){
       const pdata = playersData[rec.playerId];
       html += `
-        <div class="records-card" style="flex:1;min-width:140px;">
+        <div class="records-card" style="flex:1;min-width:140px;text-align:center;">
           <div class="title">${pos}</div>
-          <img src="https://sleepercdn.com/content/nfl/players/thumb/${rec.playerId}.jpg" alt="${pdata.full_name}">
+          <img src="https://sleepercdn.com/content/nfl/players/thumb/${rec.playerId}.jpg" alt="${pdata.full_name}" style="width:40px;height:40px;border-radius:50%;margin:5px 0;">
           <div>${pdata.full_name}</div>
           <div class="points">${rec.points.toFixed(2)} pts (Week ${rec.week})</div>
         </div>

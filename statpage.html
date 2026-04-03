@@ -131,77 +131,78 @@ function calculateSeasonRecords(allWeeks) {
   const positionMax = {};
 
   allWeeks.forEach((matchups, weekIdx) => {
-    if(!matchups) return;
+    if (!matchups) return;
     matchups.forEach(team => {
       const points = team.players_points || {};
-      for(const playerId in points) {
+      for (const playerId in points) {
         const pts = points[playerId];
 
         // Best Game Player
-        if(!playerMaxGame[playerId] || pts > playerMaxGame[playerId].points) {
-          playerMaxGame[playerId] = {points: pts, week: weekIdx+1};
+        if (!playerMaxGame[playerId] || pts > playerMaxGame[playerId].points) {
+          playerMaxGame[playerId] = { points: pts, week: weekIdx + 1 };
         }
 
         // Manager Total
-        if(!managerTotals[team.roster_id]) managerTotals[team.roster_id] = 0;
+        if (!managerTotals[team.roster_id]) managerTotals[team.roster_id] = 0;
         managerTotals[team.roster_id] += pts;
 
         // Position Max
         const pos = normalizePosition(playersData[playerId]?.position || "");
-        if(pos){
-          if(!positionMax[pos] || pts > positionMax[pos].points) {
-            positionMax[pos] = {playerId, points: pts, week: weekIdx+1};
+        if (pos) {
+          if (!positionMax[pos] || pts > positionMax[pos].points) {
+            positionMax[pos] = { playerId, points: pts, week: weekIdx + 1 };
           }
         }
       }
     });
   });
 
-  // Best Player Game
-  const bestGameEntry = Object.entries(playerMaxGame).sort((a,b)=>b[1].points - a[1].points)[0];
+  // Best Game Player
+  const bestGameEntry = Object.entries(playerMaxGame).sort((a, b) => b[1].points - a[1].points)[0];
   const bestGamePlayerData = playersData[bestGameEntry[0]];
 
   // Best Manager
-  const bestManagerEntry = Object.entries(managerTotals).sort((a,b)=>b[1]-a[1])[0];
+  const bestManagerEntry = Object.entries(managerTotals).sort((a, b) => b[1] - a[1])[0];
+  const managerName = document.querySelector(`#roster-select option[value="${bestManagerEntry[0]}"]`)?.text || `Roster ${bestManagerEntry[0]}`;
 
   // Build HTML
-  let html = `<div style="display:flex;gap:20px;flex-wrap:wrap;">`;
+  let html = `<div style="display:flex;gap:16px;flex-wrap:wrap;">`;
 
-  // 🥇 Top Game Player Card
+  // 🏆 Best Game
   html += `
-  <div style="flex:1;min-width:220px;background:#ffd70033;padding:10px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.2);text-align:center;">
-    <h3>🥇 Best Game</h3>
-    <img src="https://sleepercdn.com/content/nfl/players/thumb/${bestGameEntry[0]}.jpg" 
-         style="width:60px;height:60px;border-radius:50%;margin-bottom:5px;">
-    <div><strong>${bestGamePlayerData.full_name}</strong></div>
-    <div>${bestGameEntry[1].points.toFixed(2)} Points (Week ${bestGameEntry[1].week})</div>
-  </div>`;
+    <div class="records-card" style="flex:1;min-width:180px;">
+      <div class="title">🥇 Best Game</div>
+      <img src="https://sleepercdn.com/content/nfl/players/thumb/${bestGameEntry[0]}.jpg" 
+           alt="${bestGamePlayerData.full_name}">
+      <div>${bestGamePlayerData.full_name}</div>
+      <div class="points">${bestGameEntry[1].points.toFixed(2)} pts (Week ${bestGameEntry[1].week})</div>
+    </div>
+  `;
 
-  // 🥈 Top Manager Card
+  // 🥈 Top Manager
   html += `
-  <div style="flex:1;min-width:220px;background:#c0c0c033;padding:10px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.2);text-align:center;">
-    <h3>🥈 Top Manager</h3>
-    <div style="font-size:1.2em;"><strong>Roster ${bestManagerEntry[0]}</strong></div>
-    <div>${bestManagerEntry[1].toFixed(2)} Points</div>
-  </div>`;
+    <div class="records-card" style="flex:1;min-width:180px;">
+      <div class="title">🥈 Top Manager</div>
+      <div>${managerName}</div>
+      <div class="points">${bestManagerEntry[1].toFixed(2)} pts</div>
+    </div>
+  `;
 
-  // Positions
-  html += `<div style="flex-basis:100%;margin-top:10px;"><h3>🏈 Top per Position</h3><div style="display:flex;gap:10px;flex-wrap:wrap;">`;
-
-  for(const pos in positionMax){
+  // 🏈 Positions
+  html += `<div style="flex-basis:100%;margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;">`;
+  for (const pos in positionMax) {
     const rec = positionMax[pos];
     const pdata = playersData[rec.playerId];
     html += `
-    <div style="flex:1;min-width:160px;background:#eee;padding:8px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.15);text-align:center;">
-      <div style="font-weight:bold">${pos}</div>
-      <img src="https://sleepercdn.com/content/nfl/players/thumb/${rec.playerId}.jpg" 
-           style="width:40px;height:40px;border-radius:50%;margin:5px 0;">
-      <div>${pdata.full_name}</div>
-      <div>${rec.points.toFixed(2)} Points (Week ${rec.week})</div>
-    </div>`;
+      <div class="records-card" style="flex:1;min-width:140px;">
+        <div class="title">${pos}</div>
+        <img src="https://sleepercdn.com/content/nfl/players/thumb/${rec.playerId}.jpg" alt="${pdata.full_name}">
+        <div>${pdata.full_name}</div>
+        <div class="points">${rec.points.toFixed(2)} pts (Week ${rec.week})</div>
+      </div>
+    `;
   }
-
-  html += `</div></div></div>`;
+  html += `</div></div>`;
 
   recordsDiv.innerHTML = html;
 }

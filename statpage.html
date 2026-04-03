@@ -13,7 +13,7 @@
   <div class="navbar-container">
     <a href="index.html">Home</a>
     <a href="players.html">Players</a>
-    <a href="league.html">Legue</a>
+    <a href="leaders.html">Leaders</a>
     <div class="dropdown">
       <button class="dropbtn">League</button>
       <div class="dropdown-content">
@@ -28,7 +28,7 @@
 
 <!-- SEASON RECORDS PANEL -->
 <div id="season-records" style="margin:20px 0;">
-  <div id="records-content">Lade Rekorde...</div>
+  <div id="records-content"></div>
 </div>
 
 <!-- FILTER -->
@@ -122,6 +122,7 @@ async function loadPlayers(){
   playersData = await fetch("https://api.sleeper.app/v1/players/nfl").then(r => r.json());
 }
 
+// Neue Funktion: Top 3 Spieler & Manager, Positionskarten sortiert
 function calculateSeasonRecords(allWeeks) {
   const recordsDiv = document.getElementById("records-content");
   const playerMaxGame = {};
@@ -155,7 +156,7 @@ function calculateSeasonRecords(allWeeks) {
     });
   });
 
-  // Top 3 Spieler nach Single Game
+  // Top 3 Spieler
   const topPlayers = Object.entries(playerMaxGame)
     .sort((a, b) => b[1].points - a[1].points)
     .slice(0, 3);
@@ -167,7 +168,7 @@ function calculateSeasonRecords(allWeeks) {
 
   let html = `<div style="display:flex;flex-direction:column;gap:20px;">`;
 
-  // 🥇 Top Spieler Kachel
+  // Top Spieler Kachel
   html += `<div style="display:flex;gap:10px;background:#ffd70033;padding:12px;border-radius:12px;flex-wrap:wrap;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.2);">
     <div style="width:100%;text-align:center;font-weight:bold;font-size:1.1em;">🥇 Top Spieler</div>`;
   topPlayers.forEach((entry, idx) => {
@@ -187,7 +188,7 @@ function calculateSeasonRecords(allWeeks) {
   });
   html += `</div>`;
 
-  // 🥈 Top Manager Kachel
+  // Top Manager Kachel
   html += `<div style="display:flex;gap:10px;background:#c0c0c033;padding:12px;border-radius:12px;flex-wrap:wrap;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,0.2);">
     <div style="width:100%;text-align:center;font-weight:bold;font-size:1.1em;">🥈 Top Manager</div>`;
   topManagers.forEach((entry, idx) => {
@@ -204,7 +205,7 @@ function calculateSeasonRecords(allWeeks) {
   });
   html += `</div>`;
 
-  // 🏈 Positions sortiert
+  // Positionskarten sortiert
   const positionOrder = ["QB","RB","WR","TE","DL","LB","DB"];
   html += `<div style="flex-basis:100%;margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;">`;
   positionOrder.forEach(pos => {
@@ -222,10 +223,92 @@ function calculateSeasonRecords(allWeeks) {
       `;
     }
   });
-
   html += `</div></div>`;
+
   recordsDiv.innerHTML = html;
 }
+
+async function loadLeaders(){
+  const status = document.getElementById("status");
+
+  await loadPlayers();
+  status.innerText = "Lade Matchups...";
+
+  const totals = {};
+  const weekRequests = [];
+
+  for(let week=1; week<=seasonWeeks; week++){
+    weekRequests.push(
+      fetch(`https://api.sleeper.app/v1/league/${leagueId}/matchups/${week}`)
+        .then(r => r.json())
+        .catch(() => null)
+    );
+  }
+
+  const allWeeks = await Promise.all(weekRequests);
+
+  allWeeks.forEach(matchups => {
+    if(!matchups) return;
+    matchups.forEach(team => {
+      const points = team.players_points || {};
+      for(const playerId in points){
+        if(!totals[playerId]) totals[playerId] = 0;
+        totals[playerId] += points[playerId];
+        playerRoster[playerId] = team.roster_id;
+      }
+    });
+  });
+
+  leaderboardData = [];
+  for(const id in totals){
+    const player = playersData[id];
+    if(!player) continue;
+    leaderboardData.push({
+      name: player.full_name,
+      team: player.team || "-",
+      position: normalizePosition(player.position),
+      points: totals[id],
+      roster: playerRoster[id],
+      playerId: id
+    });
+  }
+
+  leaderboardData.sort((a,b)=>b.points - a.points);
+
+  status.innerText = "";
+  calculateSeasonRecords(allWeeks);
+  renderTable();
+}
+
+function renderTable(){
+  const posFilter = document.getElementById("positionFilter").value;
+  const rosterFilter = document.getElementById("roster-select").value;
+  const searchFilter = document.getElementById("playerSearch").value.toLowerCase();
+
+  const table = document.getElementById("tableBody");
+  let html = "";
+
+  let filtered = leaderboardData;
+
+  if(posFilter !== "ALL") filtered = filtered.filter(p => p.position === posFilter);
+  if(rosterFilter !== "ALL") filtered = filtered.filter(p => String(p.roster) === rosterFilter);
+  if(searchFilter !== "") filtered = filtered.filter(p => p.name.toLowerCase().includes(searchFilter));
+
+  filtered.slice(0,200).forEach((p,i) => {
+    html += `<tr>
+      <td data-label="Rank">${i+1}</td>
+      <td data-label="Player">
+        <a href="player.html?id=${p.playerId}" target="_blank">${p.name}</a>
+      </td>
+      <td data-label="Team">${p.team}</td>
+      <td data-label="Pos">${p.position}</td>
+      <td data-label="Points">${p.points.toFixed(2)}</td>
+    </tr>`;
+  });
+
+  table.innerHTML = html;
+}
+
 window.onload = () => {
   const season = document.getElementById("season-select").value;
   leagueId = leagueIds[season];

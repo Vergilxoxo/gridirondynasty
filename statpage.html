@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -62,6 +63,7 @@
 <option value="RB">RB</option>
 <option value="WR">WR</option>
 <option value="TE">TE</option>
+<option value="K">K</option>
 <option value="DL">DL</option>
 <option value="LB">LB</option>
 <option value="DB">DB</option>
@@ -69,6 +71,9 @@
 
 </div>
 
+<div id="status"></div>
+
+<!-- TABLE -->
 <table>
 <thead>
 <tr>
@@ -195,6 +200,8 @@ async function loadLeaders(){
   }
 
   leaderboardData.sort((a,b)=>b.points-a.points);
+
+  status.innerText="";
 
   renderTable();
 

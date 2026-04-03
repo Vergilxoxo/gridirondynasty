@@ -187,20 +187,23 @@ function calculateSeasonRecords(allWeeks) {
     </div>
   `;
 
-  // 🏈 Positions
+  // 🏈 Positions (sortiert QB → RB → WR → TE → DL → LB → DB)
+  const positionOrder = ["QB","RB","WR","TE","DL","LB","DB"];
   html += `<div style="flex-basis:100%;margin-top:12px;display:flex;gap:12px;flex-wrap:wrap;">`;
-  for (const pos in positionMax) {
+  positionOrder.forEach(pos => {
     const rec = positionMax[pos];
-    const pdata = playersData[rec.playerId];
-    html += `
-      <div class="records-card" style="flex:1;min-width:140px;">
-        <div class="title">${pos}</div>
-        <img src="https://sleepercdn.com/content/nfl/players/thumb/${rec.playerId}.jpg" alt="${pdata.full_name}">
-        <div>${pdata.full_name}</div>
-        <div class="points">${rec.points.toFixed(2)} pts (Week ${rec.week})</div>
-      </div>
-    `;
-  }
+    if(rec){
+      const pdata = playersData[rec.playerId];
+      html += `
+        <div class="records-card" style="flex:1;min-width:140px;">
+          <div class="title">${pos}</div>
+          <img src="https://sleepercdn.com/content/nfl/players/thumb/${rec.playerId}.jpg" alt="${pdata.full_name}">
+          <div>${pdata.full_name}</div>
+          <div class="points">${rec.points.toFixed(2)} pts (Week ${rec.week})</div>
+        </div>
+      `;
+    }
+  });
   html += `</div></div>`;
 
   recordsDiv.innerHTML = html;

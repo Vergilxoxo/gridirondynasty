@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -33,6 +34,12 @@
 
 <!-- FILTER -->
 <div class="filter-container">
+
+<select id="season-select" onchange="changeSeason()">
+<option value="2026">2026</option>
+<option value="2025">2025</option>
+<option value="2024">2024</option>
+</select>
 
 <input type="text" id="playerSearch" placeholder="Spieler suchen..." oninput="renderTable()">
 
@@ -83,8 +90,16 @@
 </table>
 
 <script>
-const leagueId="1207768406841892864";
+
 const seasonWeeks=18;
+
+let leagueId;
+
+const leagueIds={
+  "2026":"1311998228123643904",
+  "2025":"120776840684189286",
+  "2024":"1042445037713334272"
+};
 
 let leaderboardData=[];
 let playersData={};
@@ -96,57 +111,103 @@ function normalizePosition(pos){
   return pos;
 }
 
+function changeSeason(){
+
+  const season=document.getElementById("season-select").value;
+
+  leagueId=leagueIds[season];
+
+  leaderboardData=[];
+  playersData={};
+  playerRoster={};
+
+  document.getElementById("status").innerText="Lade Daten für "+season;
+
+  loadLeaders();
+}
+
 async function loadLeaders(){
+
   const status=document.getElementById("status");
   status.innerText="Lade Spieler...";
 
   playersData=await fetch("https://api.sleeper.app/v1/players/nfl").then(r=>r.json());
+
   let totals={};
 
   for(let week=1;week<=seasonWeeks;week++){
+
     status.innerText="Lade Woche "+week;
+
     try{
+
       const res=await fetch(`https://api.sleeper.app/v1/league/${leagueId}/matchups/${week}`);
+
       if(!res.ok) continue;
+
       const matchups=await res.json();
+
       matchups.forEach(team=>{
+
         const points=team.players_points || {};
+
         for(const playerId in points){
+
           if(!totals[playerId]) totals[playerId]=0;
+
           totals[playerId]+=points[playerId];
+
           playerRoster[playerId]=team.roster_id;
+
         }
+
       });
+
     }catch(e){
+
       console.log("Week error",week);
+
     }
+
   }
 
   leaderboardData=[];
+
   for(const id in totals){
+
     const player=playersData[id];
+
     if(!player) continue;
+
     leaderboardData.push({
+
       name:player.full_name,
       team:player.team || "-",
       position:normalizePosition(player.position),
       points:totals[id],
       roster:playerRoster[id],
-      playerId: id
+      playerId:id
+
     });
+
   }
 
   leaderboardData.sort((a,b)=>b.points-a.points);
+
   status.innerText="Fertig geladen";
+
   renderTable();
+
 }
 
 function renderTable(){
+
   const posFilter=document.getElementById("positionFilter").value;
   const rosterFilter=document.getElementById("roster-select").value;
   const searchFilter=document.getElementById("playerSearch").value.toLowerCase();
 
   const table=document.getElementById("tableBody");
+
   table.innerHTML="";
 
   let filtered=leaderboardData;
@@ -164,6 +225,7 @@ function renderTable(){
   }
 
   filtered.slice(0,200).forEach((p,i)=>{
+
     table.innerHTML+=`
       <tr>
         <td data-label="Rank">${i+1}</td>
@@ -175,11 +237,23 @@ function renderTable(){
         <td data-label="Points">${p.points.toFixed(2)}</td>
       </tr>
     `;
+
   });
+
 }
 
-window.onload=loadLeaders;
+window.onload=()=>{
+
+  const season=document.getElementById("season-select").value;
+
+  leagueId=leagueIds[season];
+
+  loadLeaders();
+
+};
+
 </script>
 
 </body>
 </html>
+```

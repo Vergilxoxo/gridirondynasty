@@ -114,14 +114,28 @@ async function renderRecords() {
   records.forEach((r, index) => {
 
     const row = document.createElement("div");
-    row.className = "records-row";
+    row.className = "record-row";
 
-    row.innerHTML = `
-      <div class="rank">${index + 1}</div>
-      <div class="owner">${r.owner}</div>
-      <div class="week">W${r.week} • ${r.year}</div>
-      <div class="points">${r.points.toFixed(2)}</div>
-    `;
+    const rank = document.createElement("span");
+    rank.className = "rank";
+    rank.textContent = index + 1;
+
+    const owner = document.createElement("span");
+    owner.className = "owner";
+    owner.textContent = r.owner;
+
+    const week = document.createElement("span");
+    week.className = "week";
+    week.textContent = `W${r.week} • ${r.year}`;
+
+    const points = document.createElement("span");
+    points.className = "points";
+    points.textContent = r.points.toFixed(2);
+
+    row.appendChild(rank);
+    row.appendChild(owner);
+    row.appendChild(week);
+    row.appendChild(points);
 
     list.appendChild(row);
 

@@ -107,7 +107,6 @@ async function getAllRecords() {
 async function renderRecords() {
 
   const list = document.getElementById("records-list");
-
   const records = await getAllRecords();
 
   list.innerHTML = "";
@@ -115,13 +114,13 @@ async function renderRecords() {
   records.forEach((r, index) => {
 
     const row = document.createElement("div");
-    row.className = "record-row";
+    row.className = "records-row";
 
     row.innerHTML = `
-      <span class="rank">${index + 1}</span>
-      <span class="owner">${r.owner}</span>
-      <span class="week">W${r.week} • ${r.year}</span>
-      <span class="points">${r.points.toFixed(2)}</span>
+      <div class="rank">${index + 1}</div>
+      <div class="owner">${r.owner}</div>
+      <div class="week">W${r.week} • ${r.year}</div>
+      <div class="points">${r.points.toFixed(2)}</div>
     `;
 
     list.appendChild(row);

@@ -15,18 +15,19 @@
   </div>
 
   <div class="records-grid" id="records-grid">
-    <!-- Dynamisch eingefügt -->
+    Lade Daten...
   </div>
 </div>
 
 <script>
+
 const leagueIds = {
   "2026":"1311998228123643904",
   "2025":"1207768406841892864",
   "2024":"1042445037713334272"
 };
 
-// Owner Map (Roster ID → Owner Name)
+// Owner Map (Roster → Owner)
 const ownerMap = {
   "1": "Ralf",
   "2": "TitleTownPat",
@@ -42,68 +43,82 @@ const ownerMap = {
   "12": "CrazyGringo"
 };
 
-async function fetchMatchups(leagueId) {
-  const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/matchups`);
+async function fetchWeekMatchups(leagueId, week) {
+  const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/matchups/${week}`);
   return res.json();
 }
 
-async function getTopRecords() {
-  const weeklyMaxes = []; // Alle Wochen mit max Punkten
+async function getAllRecords() {
+
+  const allRecords = [];
 
   for (const year in leagueIds) {
+
     const leagueId = leagueIds[year];
-    const matchups = await fetchMatchups(leagueId);
 
-    // Gruppiere nach Woche
-    const weeks = {};
-    matchups.forEach(team => {
-      const w = team.week;
-      if (!weeks[w]) weeks[w] = [];
-      weeks[w].push(team);
-    });
+    for (let week = 1; week <= 18; week++) {
 
-    // Pro Woche den höchsten Punktestand finden
-    for (const w in weeks) {
-      const teams = weeks[w];
-      let maxTeam = teams[0];
-      teams.forEach(t => {
-        if (t.points > maxTeam.points) maxTeam = t;
-      });
+      try {
 
-      weeklyMaxes.push({
-        owner: ownerMap[maxTeam.roster_id.toString()] || "Unknown",
-        points: maxTeam.points,
-        week: maxTeam.week,
-        year: year
-      });
+        const matchups = await fetchWeekMatchups(leagueId, week);
+
+        if (!matchups || matchups.length === 0) continue;
+
+        matchups.forEach(team => {
+
+          const owner = ownerMap[team.roster_id] || "Unknown";
+
+          allRecords.push({
+            owner: owner,
+            points: team.points || 0,
+            week: week,
+            year: year
+          });
+
+        });
+
+      } catch (err) {
+        console.error("Week error", week, err);
+      }
+
     }
+
   }
 
-  // Top 10 nach Punkten
-  weeklyMaxes.sort((a,b) => b.points - a.points);
-  return weeklyMaxes.slice(0, 10);
+  // Sortieren nach Punkten
+  allRecords.sort((a,b) => b.points - a.points);
+
+  return allRecords.slice(0,10);
+
 }
 
 async function renderRecords() {
-  const grid = document.getElementById("records-grid");
-  grid.innerHTML = "Lade Daten...";
 
-  const topRecords = await getTopRecords();
+  const grid = document.getElementById("records-grid");
+
+  const records = await getAllRecords();
+
   grid.innerHTML = "";
 
-  topRecords.forEach(r => {
+  records.forEach(r => {
+
     const card = document.createElement("div");
     card.className = "records-card";
+
     card.innerHTML = `
-      <div class="title">Woche ${r.week}, ${r.year}</div>
-      <div class="points">${r.points.toFixed(2)}</div>
+      <div class="title">Week ${r.week} • ${r.year}</div>
+      <div class="points">${r.points.toFixed(2)} pts</div>
       <div class="owner">${r.owner}</div>
     `;
+
     grid.appendChild(card);
+
   });
+
 }
 
 renderRecords();
+
 </script>
 
 </body>

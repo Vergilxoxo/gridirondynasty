@@ -1,103 +1,103 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>All Time Single Week Scoring Rekords</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>All Time Single Week Scoring Records</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="league-container">
-    <div class="league-header">
-      <h1>All Time Single Week Scoring Records</h1>
-      <p>Top 10 Wochenpunkte aller Zeiten</p>
-    </div>
-
-    <div class="records-grid" id="records-grid">
-      <!-- Dynamisch eingefügt -->
-    </div>
+<div class="league-container">
+  <div class="league-header">
+    <h1>All Time Single Week Scoring Rekords</h1>
+    <p>Top 10 Wochenpunkte aller Zeiten</p>
   </div>
 
-  <script>
-    const leagueIds = {
-      "2026":"1311998228123643904",
-      "2025":"1207768406841892864",
-      "2024":"1042445037713334272"
-    };
+  <div class="records-grid" id="records-grid">
+    <!-- Dynamisch eingefügt -->
+  </div>
+</div>
 
-    async function fetchOwners(leagueId) {
-      const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/users`);
-      const users = await res.json();
-      const owners = {};
-      users.forEach(u => {
-        owners[u.user_id] = u.display_name || u.username;
-      });
-      return owners;
-    }
+<script>
+  // League IDs
+  const leagueIds = {
+    "2026":"1311998228123643904",
+    "2025":"1207768406841892864",
+    "2024":"1042445037713334272"
+  };
 
-    async function fetchMatchups(leagueId) {
-      const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/matchups`);
-      const matchups = await res.json();
-      return matchups;
-    }
+  // Owner Map (Roster ID → Owner Name)
+  const ownerMap = {
+    "1": "Ralf",
+    "2": "TitleTownPat",
+    "3": "MrNilsson",
+    "4": "kleinerlouis",
+    "5": "Ulle",
+    "6": "TST1860",
+    "7": "brab97",
+    "8": "Himp84",
+    "9": "TobiWalonso",
+    "10": "49erflo",
+    "11": "Heesy",
+    "12": "CrazyGringo"
+  };
 
-    async function getTopRecords() {
-      let allRecords = [];
+  // Matchups für eine Liga abrufen
+  async function fetchMatchups(leagueId) {
+    const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/matchups`);
+    return res.json();
+  }
 
-      for (const year in leagueIds) {
-        const leagueId = leagueIds[year];
-        const owners = await fetchOwners(leagueId);
-        const matchups = await fetchMatchups(leagueId);
+  // Alle Top-Records zusammenstellen
+  async function getTopRecords() {
+    let allRecords = [];
 
-        matchups.forEach(m => {
-          // Sleeper liefert manchmal arrays mit owner_ids für die Teams
-          if (!Array.isArray(m.owner_id) && m.owner_id) {
-            allRecords.push({
-              owner: owners[m.owner_id] || "Unknown",
-              points: m.points,
-              week: m.week,
-              year: year
-            });
-          } else if (Array.isArray(m.owner_id)) {
-            m.owner_id.forEach((oid, idx) => {
-              allRecords.push({
-                owner: owners[oid] || "Unknown",
-                points: Array.isArray(m.points) ? m.points[idx] : m.points,
-                week: m.week,
-                year: year
-              });
-            });
-          }
+    for (const year in leagueIds) {
+      const leagueId = leagueIds[year];
+      const matchups = await fetchMatchups(leagueId);
+
+      matchups.forEach(m => {
+        const rosterId = m.roster_id.toString(); // Roster ID als String
+        const owner = ownerMap[rosterId] || "Unknown";
+
+        allRecords.push({
+          owner: owner,
+          points: m.points,
+          week: m.week,
+          year: year
         });
-      }
-
-      // Sortieren und Top 10
-      allRecords.sort((a,b) => b.points - a.points);
-      return allRecords.slice(0,10);
-    }
-
-    async function renderRecords() {
-      const grid = document.getElementById("records-grid");
-      grid.innerHTML = "Lade Daten...";
-
-      const topRecords = await getTopRecords();
-      grid.innerHTML = "";
-
-      topRecords.forEach(r => {
-        const card = document.createElement("div");
-        card.className = "records-card";
-        card.innerHTML = `
-          <div class="title">Woche ${r.week}, ${r.year}</div>
-          <div class="points">${r.points.toFixed(2)}</div>
-          <div class="owner">${r.owner}</div>
-        `;
-        grid.appendChild(card);
       });
     }
 
-    renderRecords();
-  </script>
+    // Top 10 nach Punkten
+    allRecords.sort((a,b) => b.points - a.points);
+    return allRecords.slice(0, 10);
+  }
+
+  // Records rendern
+  async function renderRecords() {
+    const grid = document.getElementById("records-grid");
+    grid.innerHTML = "Lade Daten...";
+
+    const topRecords = await getTopRecords();
+    grid.innerHTML = "";
+
+    topRecords.forEach(r => {
+      const card = document.createElement("div");
+      card.className = "records-card";
+      card.innerHTML = `
+        <div class="title">Woche ${r.week}, ${r.year}</div>
+        <div class="points">${r.points.toFixed(2)}</div>
+        <div class="owner">${r.owner}</div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  // Seite laden
+  renderRecords();
+</script>
 
 </body>
 </html>

@@ -208,6 +208,7 @@ function calculateSeasonRecords(allWeeks) {
   </div>
   `;
 
+  
   /* TOP MANAGER CARD */
 html += `
 <div class="records-card" style="flex:1;min-width:260px;">
@@ -230,17 +231,17 @@ html += `
 
           <div style="display:flex;align-items:center;gap:10px;">
             
-            <div style="font-size:20px;">
+            <div style="font-size:20px; width:30px;">
               ${medals[idx]}
             </div>
 
-            <div style="font-size:14px;">
+            <div style="font-size:14px; flex:1;">
               ${mgr.name}
             </div>
 
           </div>
 
-          <div class="points">
+          <div class="points" style="margin-left:20px; font-weight:bold;">
             ${mgr.points.toFixed(2)} pts
           </div>
 

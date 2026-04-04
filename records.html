@@ -1,75 +1,92 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<title>League Records</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>All Time Single Week Scoring Records</title>
+  <!-- Deine CSS-Datei einbinden -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- NAVBAR -->
-<div class="navbar">
-  <div class="navbar-container">
-    <a href="index.html">Home</a>
-    <a href="players.html">Players</a>
-    <a href="leaders.html">Leaders</a>
-    <div class="dropdown">
-      <button class="dropbtn">League</button>
-      <div class="dropdown-content">
-        <a href="standings.html">Standings</a>
-        <a href="matchups.html">Matchups</a>
-      </div>
+  <div class="league-container">
+    <div class="league-header">
+      <h1>All Time Single Week Scoring Records</h1>
+      <p>Top 10 Wochenpunkte aller Zeiten</p>
+    </div>
+
+    <div class="records-grid" id="records-grid">
+      <!-- Dynamisch hier eingefügt -->
     </div>
   </div>
-</div>
 
-<h1>League Records</h1>
+  <script>
+    const leagueIds = {
+      "2026":"1311998228123643904",
+      "2025":"1207768406841892864",
+      "2024":"1042445037713334272"
+    };
 
-<!-- FILTER -->
-<div class="filter-container">
-  <select id="season-select" onchange="changeSeason()">
-    <option value="2026">2026</option>
-    <option value="2025">2025</option>
-    <option value="2024">2024</option>
-  </select>
+    // Spielerinformationen von Sleeper
+    let allUsers = {};
 
-  <select id="roster-select" onchange="renderTable()">
-    <option value="ALL">Alle Manager</option>
-    <option value="1">Ralf</option>
-    <option value="2">TitleTownPat</option>
-    <option value="3">MrNilsson</option>
-    <option value="4">kleinerlouis</option>
-    <option value="5">Ulle</option>
-    <option value="6">TST1860</option>
-    <option value="7">brab97</option>
-    <option value="8">Himp84</option>
-    <option value="9">TobiWalonso</option>
-    <option value="10">49erflo</option>
-    <option value="11">Heesy</option>
-    <option value="12">CrazyGringo</option>
-  </select>
-</div>
+    async function fetchLeagueUsers(leagueId) {
+      const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/users`);
+      const users = await res.json();
+      users.forEach(user => {
+        allUsers[user.user_id] = user.display_name || user.username;
+      });
+    }
 
-<!-- RECORDS CARDS -->
-<div id="season-records" style="margin:20px 0;">
-  <div id="records-content"></div>
-</div>
+    async function fetchTopScores() {
+      let records = [];
+      for (const year in leagueIds) {
+        const leagueId = leagueIds[year];
 
-<!-- TABLE -->
-<table>
-  <thead>
-    <tr>
-      <th>Rank</th>
-      <th>Player</th>
-      <th>Team</th>
-      <th>Pos</th>
-      <th>Points</th>
-    </tr>
-  </thead>
-  <tbody id="tableBody"></tbody>
-</table>
+        // Userdaten abrufen
+        await fetchLeagueUsers(leagueId);
 
-<script src="records.js"></script>
+        // Matchups abrufen
+        const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/matchups`);
+        const matchups = await res.json();
 
+        matchups.forEach(m => {
+          records.push({
+            ownerId: m.owner_id || "Unknown",
+            points: m.points,
+            week: m.week,
+            year: year
+          });
+        });
+      }
+
+      // Sortieren nach Punkten absteigend und nur Top 10
+      records.sort((a, b) => b.points - a.points);
+      return records.slice(0, 10);
+    }
+
+    async function renderRecords() {
+      const recordsGrid = document.getElementById("records-grid");
+      recordsGrid.innerHTML = "<div>Lade Daten...</div>";
+
+      const topScores = await fetchTopScores();
+      recordsGrid.innerHTML = "";
+
+      topScores.forEach(record => {
+        const ownerName = allUsers[record.ownerId] || "Unknown";
+        const card = document.createElement("div");
+        card.className = "records-card";
+        card.innerHTML = `
+          <div class="title">Woche ${record.week}, ${record.year}</div>
+          <div class="points">${record.points.toFixed(2)}</div>
+          <div class="owner">${ownerName}</div>
+        `;
+        recordsGrid.appendChild(card);
+      });
+    }
+
+    // Seite laden
+    renderRecords();
+  </script>
 </body>
 </html>

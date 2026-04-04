@@ -123,7 +123,7 @@ async function getAllRecords() {
   for (const year in leagueIds) {
     const leagueId = leagueIds[year];
 
-    for (let week = 1; week <= 18; week++) {
+    for (let week = 1; week <= 17; week++) {
       try {
         const matchups = await fetchWeekMatchups(leagueId, week);
         if (!matchups || matchups.length === 0) continue;

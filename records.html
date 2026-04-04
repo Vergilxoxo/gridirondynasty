@@ -14,19 +14,32 @@
     <p>Top 10 Wochenpunkte aller Zeiten</p>
   </div>
 
-  <div class="records-card records-ranking">
+  <div class="records-cards-grid">
 
-  <div class="records-table">
-
-    <div class="records-header">
-      <span>#</span>
-      <span>Manager</span>
-      <span>Week</span>
-      <span>Points</span>
+  <!-- All Time Single Week High -->
+  <div class="records-card records-ranking" id="records-high">
+    <div class="records-table">
+      <div class="records-header">
+        <span>#</span>
+        <span>Manager</span>
+        <span>Week</span>
+        <span>Points</span>
+      </div>
+      <div id="records-list-high"></div>
     </div>
+  </div>
 
-    <div id="records-list"></div>
-
+  <!-- Lowest Week -->
+  <div class="records-card records-ranking" id="records-low">
+    <div class="records-table">
+      <div class="records-header">
+        <span>#</span>
+        <span>Manager</span>
+        <span>Week</span>
+        <span>Points</span>
+      </div>
+      <div id="records-list-low"></div>
+    </div>
   </div>
 
 </div>
@@ -104,46 +117,47 @@ async function getAllRecords() {
 
 }
 
-async function renderRecords() {
+async function renderRecordsDual() {
 
-  const list = document.getElementById("records-list");
-  const records = await getAllRecords();
+  const records = await getAllRecords(); // Array sortiert nach Punkten
 
-  list.innerHTML = "";
+  const highList = document.getElementById("records-list-high");
+  const lowList = document.getElementById("records-list-low");
 
-  records.forEach((r, index) => {
+  highList.innerHTML = "";
+  lowList.innerHTML = "";
 
+  // Top 10 High Scores
+  records.slice(0, 10).forEach((r, index) => {
     const row = document.createElement("div");
     row.className = "record-row";
 
-    const rank = document.createElement("span");
-    rank.className = "rank";
-    rank.textContent = index + 1;
+    row.innerHTML = `
+      <span class="rank">${index + 1}</span>
+      <span class="owner">${r.owner}</span>
+      <span class="week">W${r.week} • ${r.year}</span>
+      <span class="points">${r.points.toFixed(2)}</span>
+    `;
 
-    const owner = document.createElement("span");
-    owner.className = "owner";
-    owner.textContent = r.owner;
-
-    const week = document.createElement("span");
-    week.className = "week";
-    week.textContent = `W${r.week} • ${r.year}`;
-
-    const points = document.createElement("span");
-    points.className = "points";
-    points.textContent = r.points.toFixed(2);
-
-    row.appendChild(rank);
-    row.appendChild(owner);
-    row.appendChild(week);
-    row.appendChild(points);
-
-    list.appendChild(row);
-
+    highList.appendChild(row);
   });
 
-}
+  // Top 10 Lowest Scores
+  records.slice(-10).reverse().forEach((r, index) => { // reverse, damit kleinste oben
+    const row = document.createElement("div");
+    row.className = "record-row";
 
-renderRecords();
+    row.innerHTML = `
+      <span class="rank">${index + 1}</span>
+      <span class="owner">${r.owner}</span>
+      <span class="week">W${r.week} • ${r.year}</span>
+      <span class="points">${r.points.toFixed(2)}</span>
+    `;
+
+    lowList.appendChild(row);
+  });
+}
+renderRecordsDual();
 
 </script>
 

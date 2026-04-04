@@ -118,8 +118,7 @@ async function getAllRecords() {
 }
 
 async function renderRecordsDual() {
-
-  const records = await getAllRecords(); // Array sortiert nach Punkten
+  const records = await getAllRecords(); // Array mit allen Weekly Scores
 
   const highList = document.getElementById("records-list-high");
   const lowList = document.getElementById("records-list-low");
@@ -128,34 +127,35 @@ async function renderRecordsDual() {
   lowList.innerHTML = "";
 
   // Top 10 High Scores
-  records.slice(0, 10).forEach((r, index) => {
-    const row = document.createElement("div");
-    row.className = "record-row";
+  records
+    .slice(0, 10)
+    .forEach((r, index) => {
+      const row = document.createElement("div");
+      row.className = "record-row";
+      row.innerHTML = `
+        <span class="rank">${index + 1}</span>
+        <span class="owner">${r.owner}</span>
+        <span class="week">W${r.week} • ${r.year}</span>
+        <span class="points">${r.points.toFixed(2)}</span>
+      `;
+      highList.appendChild(row);
+    });
 
-    row.innerHTML = `
-      <span class="rank">${index + 1}</span>
-      <span class="owner">${r.owner}</span>
-      <span class="week">W${r.week} • ${r.year}</span>
-      <span class="points">${r.points.toFixed(2)}</span>
-    `;
-
-    highList.appendChild(row);
-  });
-
-  // Top 10 Lowest Scores
-  records.slice(-10).reverse().forEach((r, index) => { // reverse, damit kleinste oben
-    const row = document.createElement("div");
-    row.className = "record-row";
-
-    row.innerHTML = `
-      <span class="rank">${index + 1}</span>
-      <span class="owner">${r.owner}</span>
-      <span class="week">W${r.week} • ${r.year}</span>
-      <span class="points">${r.points.toFixed(2)}</span>
-    `;
-
-    lowList.appendChild(row);
-  });
+  // Top 10 Lowest Scores (kleinste Werte oben)
+  records
+    .slice(-10)
+    .reverse()
+    .forEach((r, index) => {
+      const row = document.createElement("div");
+      row.className = "record-row";
+      row.innerHTML = `
+        <span class="rank">${index + 1}</span>
+        <span class="owner">${r.owner}</span>
+        <span class="week">W${r.week} • ${r.year}</span>
+        <span class="points">${r.points.toFixed(2)}</span>
+      `;
+      lowList.appendChild(row);
+    });
 }
 renderRecordsDual();
 

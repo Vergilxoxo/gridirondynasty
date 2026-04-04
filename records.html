@@ -118,7 +118,8 @@ async function getAllRecords() {
 }
 
 async function renderRecordsDual() {
-  const records = await getAllRecords(); // Array mit allen Weekly Scores
+  // Alle Scores aus allen Jahren und Wochen abrufen
+  const records = await getAllRecords();
 
   const highList = document.getElementById("records-list-high");
   const lowList = document.getElementById("records-list-low");
@@ -126,7 +127,7 @@ async function renderRecordsDual() {
   highList.innerHTML = "";
   lowList.innerHTML = "";
 
-  // --- Top 10 High Scores ---
+  // Top 10 High Scores (absteigend)
   const topRecords = [...records].sort((a,b) => b.points - a.points).slice(0, 10);
   topRecords.forEach((r, index) => {
     const row = document.createElement("div");
@@ -140,7 +141,7 @@ async function renderRecordsDual() {
     highList.appendChild(row);
   });
 
-  // --- Top 10 Lowest Scores ---
+  // Top 10 Low Scores (aufsteigend)
   const lowRecords = [...records].sort((a,b) => a.points - b.points).slice(0, 10);
   lowRecords.forEach((r, index) => {
     const row = document.createElement("div");

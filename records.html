@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>All Time Single Week Scoring Records</title>
-  <!-- Deine CSS-Datei einbinden -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -16,7 +15,7 @@
     </div>
 
     <div class="records-grid" id="records-grid">
-      <!-- Dynamisch hier eingefügt -->
+      <!-- Dynamisch eingefügt -->
     </div>
   </div>
 
@@ -27,66 +26,78 @@
       "2024":"1042445037713334272"
     };
 
-    // Spielerinformationen von Sleeper
-    let allUsers = {};
-
-    async function fetchLeagueUsers(leagueId) {
+    async function fetchOwners(leagueId) {
       const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/users`);
       const users = await res.json();
-      users.forEach(user => {
-        allUsers[user.user_id] = user.display_name || user.username;
+      const owners = {};
+      users.forEach(u => {
+        owners[u.user_id] = u.display_name || u.username;
       });
+      return owners;
     }
 
-    async function fetchTopScores() {
-      let records = [];
+    async function fetchMatchups(leagueId) {
+      const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/matchups`);
+      const matchups = await res.json();
+      return matchups;
+    }
+
+    async function getTopRecords() {
+      let allRecords = [];
+
       for (const year in leagueIds) {
         const leagueId = leagueIds[year];
-
-        // Userdaten abrufen
-        await fetchLeagueUsers(leagueId);
-
-        // Matchups abrufen
-        const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/matchups`);
-        const matchups = await res.json();
+        const owners = await fetchOwners(leagueId);
+        const matchups = await fetchMatchups(leagueId);
 
         matchups.forEach(m => {
-          records.push({
-            ownerId: m.owner_id || "Unknown",
-            points: m.points,
-            week: m.week,
-            year: year
-          });
+          // Sleeper liefert manchmal arrays mit owner_ids für die Teams
+          if (!Array.isArray(m.owner_id) && m.owner_id) {
+            allRecords.push({
+              owner: owners[m.owner_id] || "Unknown",
+              points: m.points,
+              week: m.week,
+              year: year
+            });
+          } else if (Array.isArray(m.owner_id)) {
+            m.owner_id.forEach((oid, idx) => {
+              allRecords.push({
+                owner: owners[oid] || "Unknown",
+                points: Array.isArray(m.points) ? m.points[idx] : m.points,
+                week: m.week,
+                year: year
+              });
+            });
+          }
         });
       }
 
-      // Sortieren nach Punkten absteigend und nur Top 10
-      records.sort((a, b) => b.points - a.points);
-      return records.slice(0, 10);
+      // Sortieren und Top 10
+      allRecords.sort((a,b) => b.points - a.points);
+      return allRecords.slice(0,10);
     }
 
     async function renderRecords() {
-      const recordsGrid = document.getElementById("records-grid");
-      recordsGrid.innerHTML = "<div>Lade Daten...</div>";
+      const grid = document.getElementById("records-grid");
+      grid.innerHTML = "Lade Daten...";
 
-      const topScores = await fetchTopScores();
-      recordsGrid.innerHTML = "";
+      const topRecords = await getTopRecords();
+      grid.innerHTML = "";
 
-      topScores.forEach(record => {
-        const ownerName = allUsers[record.ownerId] || "Unknown";
+      topRecords.forEach(r => {
         const card = document.createElement("div");
         card.className = "records-card";
         card.innerHTML = `
-          <div class="title">Woche ${record.week}, ${record.year}</div>
-          <div class="points">${record.points.toFixed(2)}</div>
-          <div class="owner">${ownerName}</div>
+          <div class="title">Woche ${r.week}, ${r.year}</div>
+          <div class="points">${r.points.toFixed(2)}</div>
+          <div class="owner">${r.owner}</div>
         `;
-        recordsGrid.appendChild(card);
+        grid.appendChild(card);
       });
     }
 
-    // Seite laden
     renderRecords();
   </script>
+
 </body>
 </html>

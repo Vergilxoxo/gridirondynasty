@@ -988,3 +988,39 @@ thead th.sort-desc::after {
   font-weight: 600;
   color: #1e90ff;
 }
+
+/* ----------------------
+   Season Records Top 3
+------------------------*/
+
+.records-top3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.records-player {
+  text-align: center;
+}
+
+.records-player img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #223348;
+  margin-bottom: 6px;
+}
+
+.records-name {
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.records-points {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e90ff;
+}

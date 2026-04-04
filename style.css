@@ -1040,3 +1040,50 @@ thead th.sort-desc::after {
   margin-top: 2px;
 }
 
+/* Ranking Records Card */
+
+.records-ranking {
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Header */
+.records-header {
+  display: grid;
+  grid-template-columns: 50px 1fr 120px 100px;
+  padding: 12px 16px;
+  background-color: #162332;
+  font-weight: 600;
+  color: #bbbbbb;
+  border-bottom: 1px solid #223348;
+}
+
+/* Rows */
+.record-row {
+  display: grid;
+  grid-template-columns: 50px 1fr 120px 100px;
+  padding: 12px 16px;
+  align-items: center;
+  border-bottom: 1px solid #223348;
+  transition: background 0.15s;
+}
+
+.record-row:hover {
+  background-color: #223348;
+}
+
+.record-row:last-child {
+  border-bottom: none;
+}
+
+/* Rank Styling */
+.rank {
+  font-weight: 700;
+  color: #1e90ff;
+}
+
+/* Points */
+.points {
+  font-weight: 600;
+  color: #1e90ff;
+}

@@ -1094,3 +1094,11 @@ thead th.sort-desc::after {
   color: #1e90ff;
   text-align: right;
 }
+
+/* Container für mehrere Records Cards nebeneinander */
+.records-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}

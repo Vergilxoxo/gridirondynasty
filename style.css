@@ -1050,22 +1050,30 @@ thead th.sort-desc::after {
 /* Header */
 .records-header {
   display: grid;
-  grid-template-columns: 50px 1fr 120px 100px;
-  padding: 12px 16px;
+  grid-template-columns: 60px 1fr 140px 100px;
   background-color: #162332;
   font-weight: 600;
   color: #bbbbbb;
-  border-bottom: 1px solid #223348;
+  border-bottom: 2px solid #223348;
+}
+
+.records-header span {
+  padding: 12px 16px;
 }
 
 /* Rows */
 .record-row {
   display: grid;
-  grid-template-columns: 50px 1fr 120px 100px;
-  padding: 12px 16px;
+  grid-template-columns: 60px 1fr 140px 100px;
   align-items: center;
   border-bottom: 1px solid #223348;
   transition: background 0.15s;
+}
+
+/* Zellen */
+.record-row span,
+.records-header span {
+  padding: 12px 16px;
 }
 
 .record-row:hover {

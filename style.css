@@ -1040,40 +1040,38 @@ thead th.sort-desc::after {
   margin-top: 2px;
 }
 
-/* Ranking Records Card */
+/* Records Table */
 
-.records-ranking {
-  padding: 0;
-  overflow: hidden;
+.records-table {
+  width: 100%;
+}
+
+/* Header + Rows gleiches Grid */
+.records-header,
+.record-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 140px 120px;
+  align-items: center;
 }
 
 /* Header */
 .records-header {
-  display: grid;
-  grid-template-columns: 60px 1fr 140px 100px;
   background-color: #162332;
   font-weight: 600;
   color: #bbbbbb;
   border-bottom: 2px solid #223348;
 }
 
-.records-header span {
+/* Cells */
+.records-header span,
+.record-row span {
   padding: 12px 16px;
 }
 
 /* Rows */
 .record-row {
-  display: grid;
-  grid-template-columns: 60px 1fr 140px 100px;
-  align-items: center;
   border-bottom: 1px solid #223348;
   transition: background 0.15s;
-}
-
-/* Zellen */
-.record-row span,
-.records-header span {
-  padding: 12px 16px;
 }
 
 .record-row:hover {
@@ -1084,7 +1082,7 @@ thead th.sort-desc::after {
   border-bottom: none;
 }
 
-/* Rank Styling */
+/* Rank */
 .rank {
   font-weight: 700;
   color: #1e90ff;
@@ -1094,4 +1092,5 @@ thead th.sort-desc::after {
 .points {
   font-weight: 600;
   color: #1e90ff;
+  text-align: right;
 }

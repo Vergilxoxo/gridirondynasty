@@ -209,25 +209,35 @@ function calculateSeasonRecords(allWeeks) {
   `;
 
   /* TOP MANAGER CARD */
-  html += `
-  <div class="records-card" style="flex:1;min-width:260px;">
-    <div class="title">🥈 Top Manager</div>
+html += `
+<div class="records-card" style="flex:1;min-width:260px;">
+  <div class="title">🏆 Top Manager</div>
 
-    <div style="
-      display:flex;
-      justify-content:space-between;
-      flex-wrap:wrap;
-      gap:10px;
-      margin-top:10px;
-      text-align:center;
-    ">
-      ${topManagers.map((mgr, idx) => `
-        <div style="flex:1;min-width:80px;">
+  <div style="margin-top:10px; display:flex; flex-direction:column; gap:10px;">
+  
+    ${topManagers.map((mgr, idx) => {
 
-          <div><strong>#${idx+1}</strong></div>
+      const medals = ["🥇","🥈","🥉"];
 
-          <div style="font-size:14px;">
-            ${mgr.name}
+      return `
+        <div style="
+          display:flex;
+          align-items:center;
+          justify-content:space-between;
+          padding:6px 10px;
+          border-radius:6px;
+        ">
+
+          <div style="display:flex;align-items:center;gap:10px;">
+            
+            <div style="font-size:20px;">
+              ${medals[idx]}
+            </div>
+
+            <div style="font-size:14px;">
+              ${mgr.name}
+            </div>
+
           </div>
 
           <div class="points">
@@ -235,10 +245,12 @@ function calculateSeasonRecords(allWeeks) {
           </div>
 
         </div>
-      `).join('')}
-    </div>
+      `;
+    }).join('')}
+
   </div>
-  `;
+</div>
+`;
 
   /* POSITION CARDS */
   const positionOrder = ["QB","RB","WR","TE","DL","LB","DB"];

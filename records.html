@@ -10,7 +10,7 @@
 
 <div class="league-container">
   <div class="league-header">
-    <h1>All Time Single Week Scoring Rekords</h1>
+    <h1>All Time Single Week Scoring Records</h1>
     <p>Top 10 Wochenpunkte aller Zeiten</p>
   </div>
 
@@ -20,83 +20,90 @@
 </div>
 
 <script>
-  // League IDs
-  const leagueIds = {
-    "2026":"1311998228123643904",
-    "2025":"1207768406841892864",
-    "2024":"1042445037713334272"
-  };
+const leagueIds = {
+  "2026":"1311998228123643904",
+  "2025":"1207768406841892864",
+  "2024":"1042445037713334272"
+};
 
-  // Owner Map (Roster ID → Owner Name)
-  const ownerMap = {
-    "1": "Ralf",
-    "2": "TitleTownPat",
-    "3": "MrNilsson",
-    "4": "kleinerlouis",
-    "5": "Ulle",
-    "6": "TST1860",
-    "7": "brab97",
-    "8": "Himp84",
-    "9": "TobiWalonso",
-    "10": "49erflo",
-    "11": "Heesy",
-    "12": "CrazyGringo"
-  };
+// Owner Map (Roster ID → Owner Name)
+const ownerMap = {
+  "1": "Ralf",
+  "2": "TitleTownPat",
+  "3": "MrNilsson",
+  "4": "kleinerlouis",
+  "5": "Ulle",
+  "6": "TST1860",
+  "7": "brab97",
+  "8": "Himp84",
+  "9": "TobiWalonso",
+  "10": "49erflo",
+  "11": "Heesy",
+  "12": "CrazyGringo"
+};
 
-  // Matchups für eine Liga abrufen
-  async function fetchMatchups(leagueId) {
-    const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/matchups`);
-    return res.json();
-  }
+async function fetchMatchups(leagueId) {
+  const res = await fetch(`https://api.sleeper.app/v1/league/${leagueId}/matchups`);
+  return res.json();
+}
 
-  // Alle Top-Records zusammenstellen
-  async function getTopRecords() {
-    let allRecords = [];
+async function getTopRecords() {
+  const weeklyMaxes = []; // Alle Wochen mit max Punkten
 
-    for (const year in leagueIds) {
-      const leagueId = leagueIds[year];
-      const matchups = await fetchMatchups(leagueId);
+  for (const year in leagueIds) {
+    const leagueId = leagueIds[year];
+    const matchups = await fetchMatchups(leagueId);
 
-      matchups.forEach(m => {
-        const rosterId = m.roster_id.toString(); // Roster ID als String
-        const owner = ownerMap[rosterId] || "Unknown";
+    // Gruppiere nach Woche
+    const weeks = {};
+    matchups.forEach(team => {
+      const w = team.week;
+      if (!weeks[w]) weeks[w] = [];
+      weeks[w].push(team);
+    });
 
-        allRecords.push({
-          owner: owner,
-          points: m.points,
-          week: m.week,
-          year: year
-        });
+    // Pro Woche den höchsten Punktestand finden
+    for (const w in weeks) {
+      const teams = weeks[w];
+      let maxTeam = teams[0];
+      teams.forEach(t => {
+        if (t.points > maxTeam.points) maxTeam = t;
+      });
+
+      weeklyMaxes.push({
+        owner: ownerMap[maxTeam.roster_id.toString()] || "Unknown",
+        points: maxTeam.points,
+        week: maxTeam.week,
+        year: year
       });
     }
-
-    // Top 10 nach Punkten
-    allRecords.sort((a,b) => b.points - a.points);
-    return allRecords.slice(0, 10);
   }
 
-  // Records rendern
-  async function renderRecords() {
-    const grid = document.getElementById("records-grid");
-    grid.innerHTML = "Lade Daten...";
+  // Top 10 nach Punkten
+  weeklyMaxes.sort((a,b) => b.points - a.points);
+  return weeklyMaxes.slice(0, 10);
+}
 
-    const topRecords = await getTopRecords();
-    grid.innerHTML = "";
+async function renderRecords() {
+  const grid = document.getElementById("records-grid");
+  grid.innerHTML = "Lade Daten...";
 
-    topRecords.forEach(r => {
-      const card = document.createElement("div");
-      card.className = "records-card";
-      card.innerHTML = `
-        <div class="title">Woche ${r.week}, ${r.year}</div>
-        <div class="points">${r.points.toFixed(2)}</div>
-        <div class="owner">${r.owner}</div>
-      `;
-      grid.appendChild(card);
-    });
-  }
+  const topRecords = await getTopRecords();
+  grid.innerHTML = "";
 
-  // Seite laden
-  renderRecords();
+  topRecords.forEach(r => {
+    const card = document.createElement("div");
+    card.className = "records-card";
+    card.innerHTML = `
+      <div class="title">Woche ${r.week}, ${r.year}</div>
+      <div class="points">${r.points.toFixed(2)}</div>
+      <div class="owner">${r.owner}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+renderRecords();
 </script>
 
 </body>

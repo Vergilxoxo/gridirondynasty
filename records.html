@@ -1,66 +1,75 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fantasy League Records</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>League Records</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="league-container">
-    <h1>Fantasy League Records</h1>
 
-    <!-- Manager Filter -->
-    <div class="filter-container">
-      <select id="roster-select-records">
-        <option value="ALL">Alle Manager</option>
-        <option value="Ralf">Ralf</option>
-        <option value="TitleTownPat">TitleTownPat</option>
-        <option value="MrNilsson">MrNilsson</option>
-        <option value="kleinerlouis">kleinerlouis</option>
-        <option value="Ulle">Ulle</option>
-        <option value="TST1860">TST1860</option>
-        <option value="brab97">brab97</option>
-        <option value="Himp84">Himp84</option>
-        <option value="TobiWalonso">TobiWalonso</option>
-        <option value="49erflo">49erflo</option>
-        <option value="Heesy">Heesy</option>
-        <option value="CrazyGringo">CrazyGringo</option>
-      </select>
-    </div>
-
-    <!-- Records Grid -->
-    <div class="records-grid">
-      <div class="records-card" id="single-week-high">
-        <img src="placeholder.jpg" alt="Spielerbild" id="swh-img">
-        <div class="title">Höchste Punkte in einer Woche</div>
-        <div class="points" id="swh-points">--</div>
-        <div class="owner" id="swh-owner">--</div>
-      </div>
-
-      <div class="records-card" id="single-week-low">
-        <img src="placeholder.jpg" alt="Spielerbild" id="swl-img">
-        <div class="title">Niedrigste Punkte in einer Woche</div>
-        <div class="points" id="swl-points">--</div>
-        <div class="owner" id="swl-owner">--</div>
-      </div>
-
-      <div class="records-card" id="narrowest-win">
-        <img src="placeholder.jpg" alt="Spielerbild" id="nw-img">
-        <div class="title">Engster Sieg</div>
-        <div class="points" id="nw-points">--</div>
-        <div class="owner" id="nw-owner">--</div>
-      </div>
-
-      <div class="records-card" id="largest-blowout">
-        <img src="placeholder.jpg" alt="Spielerbild" id="lb-img">
-        <div class="title">Größter Blowout</div>
-        <div class="points" id="lb-points">--</div>
-        <div class="owner" id="lb-owner">--</div>
+<!-- NAVBAR -->
+<div class="navbar">
+  <div class="navbar-container">
+    <a href="index.html">Home</a>
+    <a href="players.html">Players</a>
+    <a href="leaders.html">Leaders</a>
+    <div class="dropdown">
+      <button class="dropbtn">League</button>
+      <div class="dropdown-content">
+        <a href="standings.html">Standings</a>
+        <a href="matchups.html">Matchups</a>
       </div>
     </div>
   </div>
+</div>
 
-  <script src="records.js"></script>
+<h1>League Records</h1>
+
+<!-- FILTER -->
+<div class="filter-container">
+  <select id="season-select" onchange="changeSeason()">
+    <option value="2026">2026</option>
+    <option value="2025">2025</option>
+    <option value="2024">2024</option>
+  </select>
+
+  <select id="roster-select" onchange="renderTable()">
+    <option value="ALL">Alle Manager</option>
+    <option value="1">Ralf</option>
+    <option value="2">TitleTownPat</option>
+    <option value="3">MrNilsson</option>
+    <option value="4">kleinerlouis</option>
+    <option value="5">Ulle</option>
+    <option value="6">TST1860</option>
+    <option value="7">brab97</option>
+    <option value="8">Himp84</option>
+    <option value="9">TobiWalonso</option>
+    <option value="10">49erflo</option>
+    <option value="11">Heesy</option>
+    <option value="12">CrazyGringo</option>
+  </select>
+</div>
+
+<!-- RECORDS CARDS -->
+<div id="season-records" style="margin:20px 0;">
+  <div id="records-content"></div>
+</div>
+
+<!-- TABLE -->
+<table>
+  <thead>
+    <tr>
+      <th>Rank</th>
+      <th>Player</th>
+      <th>Team</th>
+      <th>Pos</th>
+      <th>Points</th>
+    </tr>
+  </thead>
+  <tbody id="tableBody"></tbody>
+</table>
+
+<script src="records.js"></script>
+
 </body>
 </html>

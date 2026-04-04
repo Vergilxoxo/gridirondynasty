@@ -14,9 +14,15 @@
     <p>Top 10 Wochenpunkte aller Zeiten</p>
   </div>
 
-  <div class="records-grid" id="records-grid">
-    Lade Daten...
+  <div class="records-card records-ranking">
+  <div class="records-header">
+    <span>#</span>
+    <span>Manager</span>
+    <span>Week</span>
+    <span>Points</span>
   </div>
+
+  <div id="records-list"></div>
 </div>
 
 <script>
@@ -94,24 +100,25 @@ async function getAllRecords() {
 
 async function renderRecords() {
 
-  const grid = document.getElementById("records-grid");
+  const list = document.getElementById("records-list");
 
   const records = await getAllRecords();
 
-  grid.innerHTML = "";
+  list.innerHTML = "";
 
-  records.forEach(r => {
+  records.forEach((r, index) => {
 
-    const card = document.createElement("div");
-    card.className = "records-card";
+    const row = document.createElement("div");
+    row.className = "record-row";
 
-    card.innerHTML = `
-      <div class="title">Week ${r.week} • ${r.year}</div>
-      <div class="points">${r.points.toFixed(2)} pts</div>
-      <div class="owner">${r.owner}</div>
+    row.innerHTML = `
+      <span class="rank">${index + 1}</span>
+      <span class="owner">${r.owner}</span>
+      <span class="week">W${r.week} • ${r.year}</span>
+      <span class="points">${r.points.toFixed(2)}</span>
     `;
 
-    grid.appendChild(card);
+    list.appendChild(row);
 
   });
 

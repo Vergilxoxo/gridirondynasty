@@ -227,9 +227,13 @@ async function renderPlayersWithoutContractBlock() {
 
   const playersWithoutContract = [];
 
-  const yearCols = sheetData.length
-    ? Object.keys(sheetData[0]).filter(k => /^\d{4}$/.test(k))
-    : [];
+  const yearCols = [
+    ...new Set(
+      sheetData.flatMap(p =>
+        Object.keys(p).filter(k => /^\d{4}$/.test(k))
+      )
+    )
+  ].sort();
 
   rosters.forEach(roster => {
     const owner = ownerMap[String(roster.roster_id)] || "Unknown";
@@ -243,17 +247,28 @@ async function renderPlayersWithoutContractBlock() {
       const sleeperPlayer = sleeperPlayers[id];
       if (!sleeperPlayer) return;
 
-      const hasSalary =
-        sheetPlayer &&
-        yearCols.some(year => parseValue(sheetPlayer[year]) > 0);
+      // Spieler steht gar nicht im Sheet
+      if (!sheetPlayer) {
+        playersWithoutContract.push({
+          Name: sleeperPlayer.full_name,
+          Position: sleeperPlayer.position || "-",
+          Owner: owner,
+          Grund: "Nicht im Sheet"
+        });
+        return;
+      }
+
+      // Spieler steht im Sheet, hat aber in keiner Jahres-Spalte Gehalt
+      const hasSalary = yearCols.some(year => {
+        return parseValue(sheetPlayer[year]) > 0;
+      });
 
       if (!hasSalary) {
         playersWithoutContract.push({
-          Name:
-            sleeperPlayer.full_name ||
-            `${sleeperPlayer.first_name || ""} ${sleeperPlayer.last_name || ""}`.trim(),
+          Name: sleeperPlayer.full_name,
           Position: sleeperPlayer.position || "-",
-          Owner: owner
+          Owner: owner,
+          Grund: "Kein Gehalt"
         });
       }
     });
@@ -272,8 +287,7 @@ async function renderPlayersWithoutContractBlock() {
     container.style.boxShadow = "0 4px 10px rgba(0,0,0,0.4)";
     container.style.border = "1px solid #162332";
     container.style.color = "#ffffff";
-    container.style.fontFamily =
-      '"Inter", "Helvetica Neue", Helvetica, Arial, sans-serif';
+    container.style.fontFamily = '"Inter", "Helvetica Neue", Helvetica, Arial, sans-serif';
     container.style.fontSize = "14px";
     container.style.lineHeight = "1.4";
     container.style.boxSizing = "border-box";
@@ -295,13 +309,14 @@ async function renderPlayersWithoutContractBlock() {
       <span style="flex:2">Player</span>
       <span style="flex:1">Position</span>
       <span style="flex:1">Owner</span>
+      <span style="flex:1">Grund</span>
     </div>
   `;
 
   if (!playersWithoutContract.length) {
     container.innerHTML += `
       <div style="padding:6px 12px;color:#bbb">
-        Alle Roster-Spieler haben einen Vertrag.
+        Alle Roster-Spieler haben ein Gehalt.
       </div>
     `;
     return;
@@ -313,6 +328,7 @@ async function renderPlayersWithoutContractBlock() {
         <span style="flex:2">${p.Name}</span>
         <span style="flex:1">${p.Position}</span>
         <span style="flex:1">${p.Owner}</span>
+        <span style="flex:1">${p.Grund}</span>
       </div>
     `;
   });

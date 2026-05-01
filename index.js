@@ -218,6 +218,8 @@ async function renderVeteranTaxiBlock() {
   });
 }
 
+// ----------------------------
+// Players without Contract
 async function renderPlayersWithoutContractBlock() {
   const sheetData = await fetchSheetPlayers();
   const rosters = await fetchRosters();
@@ -225,32 +227,40 @@ async function renderPlayersWithoutContractBlock() {
 
   const playersWithoutContract = [];
 
+  const yearCols = sheetData.length
+    ? Object.keys(sheetData[0]).filter(k => /^\d{4}$/.test(k))
+    : [];
+
   rosters.forEach(roster => {
     const owner = ownerMap[String(roster.roster_id)] || "Unknown";
     const allIds = (roster.players || []).map(String);
 
     allIds.forEach(id => {
-      const sheetPlayer = sheetData.find(p => String(p["Player ID"]).trim() === id);
-      const sleeperPlayer = sleeperPlayers[id];
+      const sheetPlayer = sheetData.find(
+        p => String(p["Player ID"]).trim() === id
+      );
 
+      const sleeperPlayer = sleeperPlayers[id];
       if (!sleeperPlayer) return;
 
-      const hasContract =
+      const hasSalary =
         sheetPlayer &&
-        sheetPlayer.Contract &&
-        sheetPlayer.Contract.trim() !== "";
+        yearCols.some(year => parseValue(sheetPlayer[year]) > 0);
 
-      if (!hasContract) {
+      if (!hasSalary) {
         playersWithoutContract.push({
-          Name: sleeperPlayer.full_name || `${sleeperPlayer.first_name || ""} ${sleeperPlayer.last_name || ""}`.trim(),
+          Name:
+            sleeperPlayer.full_name ||
+            `${sleeperPlayer.first_name || ""} ${sleeperPlayer.last_name || ""}`.trim(),
           Position: sleeperPlayer.position || "-",
-          owner
+          Owner: owner
         });
       }
     });
   });
 
   let container = document.getElementById("players-without-contract-block");
+
   if (!container) {
     container = document.createElement("div");
     container.id = "players-without-contract-block";
@@ -262,13 +272,18 @@ async function renderPlayersWithoutContractBlock() {
     container.style.boxShadow = "0 4px 10px rgba(0,0,0,0.4)";
     container.style.border = "1px solid #162332";
     container.style.color = "#ffffff";
-    container.style.fontFamily = '"Inter", "Helvetica Neue", Helvetica, Arial, sans-serif';
+    container.style.fontFamily =
+      '"Inter", "Helvetica Neue", Helvetica, Arial, sans-serif';
     container.style.fontSize = "14px";
     container.style.lineHeight = "1.4";
     container.style.boxSizing = "border-box";
 
-    document.getElementById("veteran-taxi-block")
-      .parentNode.insertBefore(container, document.getElementById("veteran-taxi-block").nextSibling);
+    document
+      .getElementById("veteran-taxi-block")
+      .parentNode.insertBefore(
+        container,
+        document.getElementById("veteran-taxi-block").nextSibling
+      );
   }
 
   container.innerHTML = `
@@ -284,7 +299,11 @@ async function renderPlayersWithoutContractBlock() {
   `;
 
   if (!playersWithoutContract.length) {
-    container.innerHTML += `<div style="padding:6px 12px;color:#bbb">Alle Roster-Spieler haben einen Vertrag.</div>`;
+    container.innerHTML += `
+      <div style="padding:6px 12px;color:#bbb">
+        Alle Roster-Spieler haben einen Vertrag.
+      </div>
+    `;
     return;
   }
 
@@ -293,7 +312,7 @@ async function renderPlayersWithoutContractBlock() {
       <div style="display:flex;padding:6px 12px;${i % 2 === 0 ? "background:#1f2b3d" : ""}">
         <span style="flex:2">${p.Name}</span>
         <span style="flex:1">${p.Position}</span>
-        <span style="flex:1">${p.owner}</span>
+        <span style="flex:1">${p.Owner}</span>
       </div>
     `;
   });

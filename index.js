@@ -218,11 +218,93 @@ async function renderVeteranTaxiBlock() {
   });
 }
 
+async function renderPlayersWithoutContractBlock() {
+  const sheetData = await fetchSheetPlayers();
+  const rosters = await fetchRosters();
+  const sleeperPlayers = await fetchSleeperPlayers();
+
+  const playersWithoutContract = [];
+
+  rosters.forEach(roster => {
+    const owner = ownerMap[String(roster.roster_id)] || "Unknown";
+    const allIds = (roster.players || []).map(String);
+
+    allIds.forEach(id => {
+      const sheetPlayer = sheetData.find(p => String(p["Player ID"]).trim() === id);
+      const sleeperPlayer = sleeperPlayers[id];
+
+      if (!sleeperPlayer) return;
+
+      const hasContract =
+        sheetPlayer &&
+        sheetPlayer.Contract &&
+        sheetPlayer.Contract.trim() !== "";
+
+      if (!hasContract) {
+        playersWithoutContract.push({
+          Name: sleeperPlayer.full_name || `${sleeperPlayer.first_name || ""} ${sleeperPlayer.last_name || ""}`.trim(),
+          Position: sleeperPlayer.position || "-",
+          owner
+        });
+      }
+    });
+  });
+
+  let container = document.getElementById("players-without-contract-block");
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "players-without-contract-block";
+    container.style.width = "100%";
+    container.style.backgroundColor = "#1b2a3a";
+    container.style.padding = "15px";
+    container.style.borderRadius = "8px";
+    container.style.marginBottom = "20px";
+    container.style.boxShadow = "0 4px 10px rgba(0,0,0,0.4)";
+    container.style.border = "1px solid #162332";
+    container.style.color = "#ffffff";
+    container.style.fontFamily = '"Inter", "Helvetica Neue", Helvetica, Arial, sans-serif';
+    container.style.fontSize = "14px";
+    container.style.lineHeight = "1.4";
+    container.style.boxSizing = "border-box";
+
+    document.getElementById("veteran-taxi-block")
+      .parentNode.insertBefore(container, document.getElementById("veteran-taxi-block").nextSibling);
+  }
+
+  container.innerHTML = `
+    <h2 style="margin:0 0 12px 0;font-size:20px;font-weight:700;color:#ffffff;">
+      Spieler ohne Vertrag
+    </h2>
+
+    <div style="display:flex;font-weight:600;background:#162332;padding:6px 12px;border-radius:6px;margin-bottom:8px">
+      <span style="flex:2">Player</span>
+      <span style="flex:1">Position</span>
+      <span style="flex:1">Owner</span>
+    </div>
+  `;
+
+  if (!playersWithoutContract.length) {
+    container.innerHTML += `<div style="padding:6px 12px;color:#bbb">Alle Roster-Spieler haben einen Vertrag.</div>`;
+    return;
+  }
+
+  playersWithoutContract.forEach((p, i) => {
+    container.innerHTML += `
+      <div style="display:flex;padding:6px 12px;${i % 2 === 0 ? "background:#1f2b3d" : ""}">
+        <span style="flex:2">${p.Name}</span>
+        <span style="flex:1">${p.Position}</span>
+        <span style="flex:1">${p.owner}</span>
+      </div>
+    `;
+  });
+}
+
 // ----------------------------
 // Laden
 document.addEventListener("DOMContentLoaded", async () => {
   await renderTeamCapBlock();  // Warten, bis Team-Cap-Block komplett aufgebaut ist
   await renderVeteranTaxiBlock(); // dann Veteran-Taxi-Block
+  await renderPlayersWithoutContractBlock(); // dann Players Without Contract Block
 });
 
 

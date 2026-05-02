@@ -3,6 +3,7 @@ ToDo Gridiron
 - Matchup bzw. Ligenübersicht über die Webseite
 - Tool Builder für den Kader, aktivierbar über ein Häkchen!
 - Fix a Bug wenn ein Spieler aufgenommen wird der nicht in der Gehaltstabelle steht
+- Light and Dark Toggle für Design
 
 ToDo Money League Society / Auction Tool
 - Spieleraltlasten aus dem Load entfernen - Positionen entfernen / Inactive Spieler entfernen
